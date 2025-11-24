@@ -157,11 +157,15 @@
                         <h1 id="module-architecture"><a class="header" href="#module-architecture">Module Architecture</a></h1>
 <p>This document explains the modular architecture of the Terraform project and how modules interact.</p>
 <h2 id="module-overview"><a class="header" href="#module-overview">Module Overview</a></h2>
-<p>The project uses a modular architecture with three main modules:</p>
+<p>The project uses a fully modular architecture with seven main modules:</p>
 <ol>
 <li><strong>Roles Module</strong>: Manages Snowflake account roles</li>
 <li><strong>Users Module</strong>: Manages Snowflake users</li>
 <li><strong>Warehouse Module</strong>: Manages Snowflake warehouses</li>
+<li><strong>Database Module</strong>: Manages Snowflake databases with automatic grants</li>
+<li><strong>Schema Module</strong>: Manages Snowflake schemas with automatic grants</li>
+<li><strong>Tables Module</strong>: Manages Snowflake tables with automatic grants</li>
+<li><strong>Views Module</strong>: Manages Snowflake views with automatic grants</li>
 </ol>
 <h2 id="module-design-principles"><a class="header" href="#module-design-principles">Module Design Principles</a></h2>
 <h3 id="1-single-responsibility"><a class="header" href="#1-single-responsibility">1. Single Responsibility</a></h3>
@@ -197,18 +201,33 @@
 │ Roles Module│
 └──────┬──────┘
        │
-       ├─────────────────┐
-       │                 │
-       ▼                 ▼
-┌─────────────┐   ┌──────────────┐
-│Users Module │   │Warehouse Module│
-└─────────────┘   └──────────────┘
+       ├─────────────────┬──────────────────┬──────────────┐
+       │                 │                  │              │
+       ▼                 ▼                  ▼              ▼
+┌─────────────┐   ┌──────────────┐   ┌─────────────┐  ┌─────────────┐
+│Users Module │   │Warehouse Module│  │Database Module│ │Schema Module│
+└─────────────┘   └──────────────┘   └──────┬──────┘  └──────┬──────┘
+                                             │                │
+                                             └────────┬───────┘
+                                                      │
+                                                      ▼
+                                            ┌─────────────┐
+                                            │Tables Module│
+                                            └──────┬──────┘
+                                                   │
+                                                   ▼
+                                            ┌─────────────┐
+                                            │ Views Module│
+                                            └─────────────┘
 </code></pre>
 <p><strong>Key Dependencies:</strong></p>
 <ul>
 <li><strong>Users Module</strong> depends on <strong>Roles Module</strong> (users need roles)</li>
-<li><strong>Warehouse Module</strong> may depend on <strong>Roles Module</strong> (warehouses grant to roles)</li>
-<li><strong>Root Resources</strong> depend on all modules (databases, schemas, etc.)</li>
+<li><strong>Warehouse Module</strong> depends on <strong>Roles Module</strong> (warehouses grant to roles)</li>
+<li><strong>Database Module</strong> depends on <strong>Roles Module</strong> (databases grant to roles)</li>
+<li><strong>Schema Module</strong> depends on <strong>Database Module</strong> and <strong>Roles Module</strong></li>
+<li><strong>Tables Module</strong> depends on <strong>Database Module</strong>, <strong>Schema Module</strong>, and <strong>Roles Module</strong></li>
+<li><strong>Views Module</strong> depends on <strong>Database Module</strong>, <strong>Schema Module</strong>, <strong>Tables Module</strong>, and <strong>Roles Module</strong></li>
 </ul>
 <h3 id="data-flow"><a class="header" href="#data-flow">Data Flow</a></h3>
 <ol>
@@ -343,6 +362,26 @@
 <pre><code class="language-hcl">role_map = {
   "ROLE1" = { ... }
   "ROLE2" = { ... }
+}
+</code></pre>
+<h3 id="automatic-grant-management"><a class="header" href="#automatic-grant-management">Automatic Grant Management</a></h3>
+<p>Modules that create objects (databases, schemas, tables, views) automatically handle privilege grants:</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Consistent access control</li>
+<li>No need for separate grant resources</li>
+<li>Grants are managed alongside objects</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-hcl">database_map = {
+  "MY_DB" = {
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+        privileges        = ["USAGE"]
+      }
+    ]
+  }
 }
 </code></pre>
 <h3 id="locals-for-transformations"><a class="header" href="#locals-for-transformations">Locals for Transformations</a></h3>

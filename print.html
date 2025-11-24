@@ -158,24 +158,26 @@
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <p>Welcome to the Snowflake Terraform Infrastructure documentation. This project provides a comprehensive Infrastructure-as-Code (IaC) solution for managing Snowflake resources using Terraform.</p>
 <h2 id="what-is-this-project"><a class="header" href="#what-is-this-project">What is This Project?</a></h2>
-<p>This Terraform configuration manages Snowflake infrastructure components including:</p>
+<p>This Terraform configuration manages Snowflake infrastructure components through a modular architecture:</p>
 <ul>
-<li><strong>Roles</strong>: Account roles with hierarchical relationships</li>
-<li><strong>Users</strong>: Person users, service users, and legacy service users</li>
-<li><strong>Warehouses</strong>: Compute warehouses with configurable sizing and scaling policies</li>
-<li><strong>Databases</strong>: Snowflake databases with retention policies</li>
-<li><strong>Schemas</strong>: Database schemas with managed access</li>
-<li><strong>Tables</strong>: Structured data tables with columns and constraints</li>
-<li><strong>Views</strong>: SQL views for data aggregation and presentation</li>
-<li><strong>Grants</strong>: Privilege grants for roles on various objects</li>
+<li><strong>Roles Module</strong>: Account roles with hierarchical relationships</li>
+<li><strong>Users Module</strong>: Person users, service users, and legacy service users</li>
+<li><strong>Warehouse Module</strong>: Compute warehouses with configurable sizing and scaling policies</li>
+<li><strong>Database Module</strong>: Snowflake databases with retention policies and automatic privilege grants</li>
+<li><strong>Schema Module</strong>: Database schemas with managed access and automatic privilege grants</li>
+<li><strong>Tables Module</strong>: Structured data tables with columns, constraints, and automatic privilege grants</li>
+<li><strong>Views Module</strong>: SQL views for data aggregation and presentation with automatic privilege grants</li>
 </ul>
+<p>All modules handle privilege grants internally, providing a complete, self-contained infrastructure management solution.</p>
 <h2 id="key-features"><a class="header" href="#key-features">Key Features</a></h2>
 <ul>
-<li><strong>Modular Design</strong>: Reusable modules for roles, users, and warehouses</li>
+<li><strong>Fully Modular Design</strong>: All resources (roles, users, warehouses, databases, schemas, tables, views) are managed through reusable modules</li>
+<li><strong>Automatic Grant Management</strong>: Each module handles privilege grants internally, ensuring consistent access control</li>
 <li><strong>Provider Aliases</strong>: Separate provider configurations for SECURITYADMIN and SYSADMIN roles</li>
-<li><strong>Flexible Configuration</strong>: Map-based configuration for easy resource management</li>
-<li><strong>Role-Based Access Control</strong>: Comprehensive RBAC implementation</li>
-<li><strong>Dependency Management</strong>: Proper resource dependencies and ordering</li>
+<li><strong>Flexible Configuration</strong>: Map-based configuration for easy resource management and scaling</li>
+<li><strong>Role-Based Access Control</strong>: Comprehensive RBAC implementation with automatic privilege assignment</li>
+<li><strong>Dependency Management</strong>: Proper resource dependencies and ordering across modules</li>
+<li><strong>Consistent Patterns</strong>: All modules follow the same design patterns for ease of use and maintenance</li>
 </ul>
 <h2 id="project-goals"><a class="header" href="#project-goals">Project Goals</a></h2>
 <ol>
@@ -707,7 +709,7 @@ terraform output ALL_WAREHOUSES
 <p>This document explains the structure and organization of the Terraform project.</p>
 <h2 id="directory-layout"><a class="header" href="#directory-layout">Directory Layout</a></h2>
 <pre><code>terraform/
-├── main.tf                    # Main configuration with modules and resources
+├── main.tf                    # Main configuration with all modules
 ├── provider.tf                # Provider configuration
 ├── variables.tf               # Variable definitions
 ├── outputs.tf                 # Output definitions
@@ -727,19 +729,35 @@ terraform output ALL_WAREHOUSES
         │   ├── main.tf        # User resource definitions
         │   ├── variables.tf   # User module variables
         │   └── outputs.tf     # User module outputs
-        └── warehouse/
-            ├── main.tf        # Warehouse resource definitions
-            ├── variables.tf   # Warehouse module variables
-            └── outputs.tf     # Warehouse module outputs
+        ├── warehouse/
+        │   ├── main.tf        # Warehouse resource definitions
+        │   ├── variables.tf   # Warehouse module variables
+        │   └── outputs.tf     # Warehouse module outputs
+        ├── database/
+        │   ├── main.tf        # Database resource definitions and grants
+        │   ├── variables.tf   # Database module variables
+        │   └── outputs.tf     # Database module outputs
+        ├── schema/
+        │   ├── main.tf        # Schema resource definitions and grants
+        │   ├── variables.tf   # Schema module variables
+        │   └── outputs.tf     # Schema module outputs
+        ├── tables/
+        │   ├── main.tf        # Table resource definitions and grants
+        │   ├── variables.tf   # Tables module variables
+        │   └── outputs.tf     # Tables module outputs
+        └── views/
+            ├── main.tf        # View resource definitions and grants
+            ├── variables.tf   # Views module variables
+            └── outputs.tf     # Views module outputs
 </code></pre>
 <h2 id="file-descriptions"><a class="header" href="#file-descriptions">File Descriptions</a></h2>
 <h3 id="root-level-files"><a class="header" href="#root-level-files">Root Level Files</a></h3>
 <h4 id="maintf"><a class="header" href="#maintf"><code>main.tf</code></a></h4>
 <p>The primary configuration file containing:</p>
 <ul>
-<li>Module declarations for roles, users, and warehouses</li>
-<li>Direct resource definitions (databases, schemas, tables, views)</li>
-<li>Grant resources for privilege management</li>
+<li>Module declarations for all resources (roles, users, warehouses, databases, schemas, tables, views)</li>
+<li>All resources are managed through modules - no direct resource definitions</li>
+<li>Each module handles its own privilege grants automatically</li>
 </ul>
 <h4 id="providertf"><a class="header" href="#providertf"><code>provider.tf</code></a></h4>
 <p>Defines the Terraform providers:</p>
@@ -1114,11 +1132,15 @@ Grants (references all above)
 <div style="break-before: page; page-break-before: always;"></div><h1 id="module-architecture"><a class="header" href="#module-architecture">Module Architecture</a></h1>
 <p>This document explains the modular architecture of the Terraform project and how modules interact.</p>
 <h2 id="module-overview"><a class="header" href="#module-overview">Module Overview</a></h2>
-<p>The project uses a modular architecture with three main modules:</p>
+<p>The project uses a fully modular architecture with seven main modules:</p>
 <ol>
 <li><strong>Roles Module</strong>: Manages Snowflake account roles</li>
 <li><strong>Users Module</strong>: Manages Snowflake users</li>
 <li><strong>Warehouse Module</strong>: Manages Snowflake warehouses</li>
+<li><strong>Database Module</strong>: Manages Snowflake databases with automatic grants</li>
+<li><strong>Schema Module</strong>: Manages Snowflake schemas with automatic grants</li>
+<li><strong>Tables Module</strong>: Manages Snowflake tables with automatic grants</li>
+<li><strong>Views Module</strong>: Manages Snowflake views with automatic grants</li>
 </ol>
 <h2 id="module-design-principles"><a class="header" href="#module-design-principles">Module Design Principles</a></h2>
 <h3 id="1-single-responsibility"><a class="header" href="#1-single-responsibility">1. Single Responsibility</a></h3>
@@ -1154,18 +1176,33 @@ Grants (references all above)
 │ Roles Module│
 └──────┬──────┘
        │
-       ├─────────────────┐
-       │                 │
-       ▼                 ▼
-┌─────────────┐   ┌──────────────┐
-│Users Module │   │Warehouse Module│
-└─────────────┘   └──────────────┘
+       ├─────────────────┬──────────────────┬──────────────┐
+       │                 │                  │              │
+       ▼                 ▼                  ▼              ▼
+┌─────────────┐   ┌──────────────┐   ┌─────────────┐  ┌─────────────┐
+│Users Module │   │Warehouse Module│  │Database Module│ │Schema Module│
+└─────────────┘   └──────────────┘   └──────┬──────┘  └──────┬──────┘
+                                             │                │
+                                             └────────┬───────┘
+                                                      │
+                                                      ▼
+                                            ┌─────────────┐
+                                            │Tables Module│
+                                            └──────┬──────┘
+                                                   │
+                                                   ▼
+                                            ┌─────────────┐
+                                            │ Views Module│
+                                            └─────────────┘
 </code></pre>
 <p><strong>Key Dependencies:</strong></p>
 <ul>
 <li><strong>Users Module</strong> depends on <strong>Roles Module</strong> (users need roles)</li>
-<li><strong>Warehouse Module</strong> may depend on <strong>Roles Module</strong> (warehouses grant to roles)</li>
-<li><strong>Root Resources</strong> depend on all modules (databases, schemas, etc.)</li>
+<li><strong>Warehouse Module</strong> depends on <strong>Roles Module</strong> (warehouses grant to roles)</li>
+<li><strong>Database Module</strong> depends on <strong>Roles Module</strong> (databases grant to roles)</li>
+<li><strong>Schema Module</strong> depends on <strong>Database Module</strong> and <strong>Roles Module</strong></li>
+<li><strong>Tables Module</strong> depends on <strong>Database Module</strong>, <strong>Schema Module</strong>, and <strong>Roles Module</strong></li>
+<li><strong>Views Module</strong> depends on <strong>Database Module</strong>, <strong>Schema Module</strong>, <strong>Tables Module</strong>, and <strong>Roles Module</strong></li>
 </ul>
 <h3 id="data-flow"><a class="header" href="#data-flow">Data Flow</a></h3>
 <ol>
@@ -1300,6 +1337,26 @@ Grants (references all above)
 <pre><code class="language-hcl">role_map = {
   "ROLE1" = { ... }
   "ROLE2" = { ... }
+}
+</code></pre>
+<h3 id="automatic-grant-management"><a class="header" href="#automatic-grant-management">Automatic Grant Management</a></h3>
+<p>Modules that create objects (databases, schemas, tables, views) automatically handle privilege grants:</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Consistent access control</li>
+<li>No need for separate grant resources</li>
+<li>Grants are managed alongside objects</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-hcl">database_map = {
+  "MY_DB" = {
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+        privileges        = ["USAGE"]
+      }
+    ]
+  }
 }
 </code></pre>
 <h3 id="locals-for-transformations"><a class="header" href="#locals-for-transformations">Locals for Transformations</a></h3>
@@ -2375,61 +2432,134 @@ default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
 <li><a href="modules/users-module.html">Users Module</a> - Uses warehouses as default warehouses</li>
 <li><a href="modules/../getting-started/initial-setup.html">Initial Setup</a> - Setting up warehouses</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="databases"><a class="header" href="#databases">Databases</a></h1>
-<p>This document explains how databases are created and managed in the Terraform configuration.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="database-module"><a class="header" href="#database-module">Database Module</a></h1>
+<p>The Database module manages Snowflake databases with automatic privilege grant management.</p>
 <h2 id="overview-3"><a class="header" href="#overview-3">Overview</a></h2>
-<p>Databases in Snowflake are top-level containers for schemas, tables, views, and other objects. The configuration creates databases directly in the root <code>main.tf</code> file.</p>
-<h2 id="resource-definition"><a class="header" href="#resource-definition">Resource Definition</a></h2>
+<p>The Database module (<code>modules/snowflake/database</code>) creates Snowflake databases and automatically grants privileges to specified roles. This module provides a complete solution for database management including access control.</p>
+<h2 id="module-location-3"><a class="header" href="#module-location-3">Module Location</a></h2>
+<pre><code>modules/snowflake/database/
+├── main.tf        # Database resource definitions and grants
+├── variables.tf   # Input variables
+└── outputs.tf     # Output values
+</code></pre>
+<h2 id="usage-3"><a class="header" href="#usage-3">Usage</a></h2>
 <h3 id="basic-database"><a class="header" href="#basic-database">Basic Database</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "TEST_DB" {
-  name                        = "TEST_DB"
-  comment                     = "Test database created via Terraform"
-  data_retention_time_in_days = 1
-  provider                    = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    "MY_DATABASE" = {
+      comment                     = "My database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
-<h2 id="resource-properties"><a class="header" href="#resource-properties">Resource Properties</a></h2>
-<h3 id="required-properties"><a class="header" href="#required-properties">Required Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>name</code></td><td><code>string</code></td><td>Name of the database</td></tr>
+<h3 id="database-with-multiple-role-grants"><a class="header" href="#database-with-multiple-role-grants">Database with Multiple Role Grants</a></h3>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    "ANALYTICS_DB" = {
+      comment                     = "Analytics database"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_SCIENTIST.name
+          privileges        = ["USAGE", "CREATE SCHEMA"]
+        }
+      ]
+      with_grant_option = false
+    }
+  }
+}
+</code></pre>
+<h2 id="input-variables-3"><a class="header" href="#input-variables-3">Input Variables</a></h2>
+<h3 id="database_map"><a class="header" href="#database_map"><code>database_map</code></a></h3>
+<p>Type: <code>map(object)</code><br />
+Required: Yes<br />
+Description: Map of database names to database configurations</p>
+<h4 id="database-configuration-object"><a class="header" href="#database-configuration-object">Database Configuration Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the database</td></tr>
+<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td>No</td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
 </tbody></table>
 </div>
-<h3 id="optional-properties"><a class="header" href="#optional-properties">Optional Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>comment</code></td><td><code>string</code></td><td><code>null</code></td><td>Comment describing the database</td></tr>
-<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
-<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
+<h4 id="role-privilege-object-1"><a class="header" href="#role-privilege-object-1">Role Privilege Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Yes</td><td>Name of the role receiving privileges</td></tr>
+<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>Yes</td><td>List of privileges: “USAGE”, “MODIFY”, “CREATE SCHEMA”, “MONITOR”, “OWNERSHIP”, “ALL PRIVILEGES”</td></tr>
 </tbody></table>
 </div>
-<h2 id="examples-3"><a class="header" href="#examples-3">Examples</a></h2>
-<h3 id="simple-database"><a class="header" href="#simple-database">Simple Database</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "MY_DB" {
-  name    = "MY_DB"
-  comment = "My database"
-  provider = snowflake.snowflake_sysadmin
+<h2 id="resources-created-3"><a class="header" href="#resources-created-3">Resources Created</a></h2>
+<h3 id="snowflake_databasedatabases"><a class="header" href="#snowflake_databasedatabases"><code>snowflake_database.DATABASES</code></a></h3>
+<p>Creates databases using <code>for_each</code> over the <code>database_map</code>.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>name</code>: Database name (from map key)</li>
+<li><code>comment</code>: Database comment</li>
+<li><code>data_retention_time_in_days</code>: Time Travel retention period</li>
+</ul>
+<h3 id="snowflake_grant_privileges_to_account_roledatabase_grant"><a class="header" href="#snowflake_grant_privileges_to_account_roledatabase_grant"><code>snowflake_grant_privileges_to_account_role.DATABASE_GRANT</code></a></h3>
+<p>Automatically grants database privileges to roles based on the <code>role_privileges</code> configuration.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>account_role_name</code>: Role receiving privileges</li>
+<li><code>privileges</code>: List of privileges</li>
+<li><code>on_account_object.object_type</code>: “DATABASE”</li>
+<li><code>on_account_object.object_name</code>: Database name</li>
+<li><code>with_grant_option</code>: Whether grant includes grant option</li>
+</ul>
+<p><strong>Dependencies:</strong></p>
+<ul>
+<li>Depends on <code>snowflake_database.DATABASES</code> to ensure databases exist before granting</li>
+</ul>
+<h2 id="outputs-6"><a class="header" href="#outputs-6">Outputs</a></h2>
+<h3 id="databases"><a class="header" href="#databases"><code>DATABASES</code></a></h3>
+<p>Type: <code>map(object)</code></p>
+<p>A map of all created database resources, keyed by database name.</p>
+<p><strong>Example Output:</strong></p>
+<pre><code class="language-hcl">{
+  "ANALYTICS_DB" = {
+    name    = "ANALYTICS_DB"
+    comment = "Analytics database"
+    # ... other attributes
+  }
 }
 </code></pre>
-<h3 id="database-with-custom-retention"><a class="header" href="#database-with-custom-retention">Database with Custom Retention</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "PRODUCTION_DB" {
-  name                        = "PRODUCTION_DB"
-  comment                     = "Production database"
-  data_retention_time_in_days = 30
-  provider                    = snowflake.snowflake_sysadmin
-}
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl"># Reference a database in schema module
+database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
 </code></pre>
-<h3 id="multiple-databases"><a class="header" href="#multiple-databases">Multiple Databases</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "TEST_DB" {
-  name    = "TEST_DB"
-  comment = "Test database"
-  provider = snowflake.snowflake_sysadmin
-}
-
-resource "snowflake_database" "TEST_DB2" {
-  name    = "TEST_DB2"
-  comment = "Test database 2"
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
+<h2 id="available-privileges-1"><a class="header" href="#available-privileges-1">Available Privileges</a></h2>
+<ul>
+<li><strong>USAGE</strong>: Use the database (required to access schemas/tables)</li>
+<li><strong>MODIFY</strong>: Modify database settings</li>
+<li><strong>CREATE SCHEMA</strong>: Create schemas in the database</li>
+<li><strong>MONITOR</strong>: View database usage and metrics</li>
+<li><strong>OWNERSHIP</strong>: Full ownership of the database</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
 <h2 id="data-retention-time-travel"><a class="header" href="#data-retention-time-travel">Data Retention (Time Travel)</a></h2>
 <p>The <code>data_retention_time_in_days</code> property controls Time Travel retention:</p>
 <ul>
@@ -2444,51 +2574,106 @@ resource "snowflake_database" "TEST_DB2" {
 <li>Can restore dropped objects within retention period</li>
 </ul>
 <h2 id="provider-requirements-3"><a class="header" href="#provider-requirements-3">Provider Requirements</a></h2>
-<p>Databases require the <code>snowflake_sysadmin</code> provider because:</p>
+<p>The module requires the <code>snowflake_sysadmin</code> provider alias because:</p>
 <ul>
 <li>Creating databases requires SYSADMIN privileges</li>
-<li>Database management is a system administration task</li>
+<li>Granting database privileges requires SYSADMIN privileges</li>
 </ul>
 <h2 id="dependencies-3"><a class="header" href="#dependencies-3">Dependencies</a></h2>
-<h3 id="no-dependencies"><a class="header" href="#no-dependencies">No Dependencies</a></h3>
-<p>Databases are top-level objects and don’t depend on other resources in this configuration.</p>
-<h3 id="dependent-resources"><a class="header" href="#dependent-resources">Dependent Resources</a></h3>
-<p>The following resources depend on databases:</p>
+<h3 id="internal-dependencies-3"><a class="header" href="#internal-dependencies-3">Internal Dependencies</a></h3>
 <ul>
-<li>Schemas (created within databases)</li>
-<li>Tables (created within schemas)</li>
-<li>Views (created within schemas)</li>
-<li>Grants (granted on databases)</li>
+<li><code>snowflake_grant_privileges_to_account_role.DATABASE_GRANT</code> depends on <code>snowflake_database.DATABASES</code></li>
 </ul>
-<h2 id="granting-access"><a class="header" href="#granting-access">Granting Access</a></h2>
-<p>Databases can be granted to roles for access control:</p>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.TEST_DB.name
+<h3 id="external-dependencies-3"><a class="header" href="#external-dependencies-3">External Dependencies</a></h3>
+<ul>
+<li><strong>Roles Module</strong>: Databases reference roles from the roles module for privilege grants</li>
+</ul>
+<h2 id="examples-3"><a class="header" href="#examples-3">Examples</a></h2>
+<h3 id="simple-database"><a class="header" href="#simple-database">Simple Database</a></h3>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
   }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
+  
+  database_map = {
+    "MY_DB" = {
+      comment                     = "My database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
-<h3 id="available-privileges-1"><a class="header" href="#available-privileges-1">Available Privileges</a></h3>
-<ul>
-<li><strong>USAGE</strong>: Use the database (required to access schemas/tables)</li>
-<li><strong>MODIFY</strong>: Modify database settings</li>
-<li><strong>CREATE SCHEMA</strong>: Create schemas in the database</li>
-<li><strong>MONITOR</strong>: View database usage and metrics</li>
-<li><strong>OWNERSHIP</strong>: Full ownership of the database</li>
-<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
-</ul>
+<h3 id="production-database-with-extended-retention"><a class="header" href="#production-database-with-extended-retention">Production Database with Extended Retention</a></h3>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    "PRODUCTION_DB" = {
+      comment                     = "Production database with 30-day retention"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+          privileges        = ["USAGE", "CREATE SCHEMA", "MONITOR"]
+        }
+      ]
+      with_grant_option = false
+    }
+  }
+}
+</code></pre>
+<h3 id="multiple-databases-for-different-teams"><a class="header" href="#multiple-databases-for-different-teams">Multiple Databases for Different Teams</a></h3>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    "SALES_DB" = {
+      comment                     = "Sales database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    },
+    "MARKETING_DB" = {
+      comment                     = "Marketing database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
 <h2 id="best-practices-7"><a class="header" href="#best-practices-7">Best Practices</a></h2>
 <ol>
 <li><strong>Descriptive Names</strong>: Use clear, descriptive database names</li>
 <li><strong>Comments</strong>: Always add comments explaining database purpose</li>
 <li><strong>Retention Policy</strong>: Set appropriate retention based on needs and costs</li>
 <li><strong>Access Control</strong>: Grant USAGE to roles that need access</li>
-<li><strong>Naming Conventions</strong>: Follow consistent naming conventions</li>
+<li><strong>Minimal Privileges</strong>: Grant only necessary privileges (principle of least privilege)</li>
+<li><strong>Grant Option</strong>: Use <code>with_grant_option = false</code> unless delegation is needed</li>
 </ol>
 <h2 id="troubleshooting-6"><a class="header" href="#troubleshooting-6">Troubleshooting</a></h2>
 <h3 id="database-already-exists"><a class="header" href="#database-already-exists">Database Already Exists</a></h3>
@@ -2497,7 +2682,7 @@ resource "snowflake_database" "TEST_DB2" {
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Import existing database: <code>terraform import snowflake_database.TEST_DB "TEST_DB"</code></li>
+<li>Import existing database: <code>terraform import module.ALL_DATABASES.snowflake_database.DATABASES["DB_NAME"] "DB_NAME"</code></li>
 <li>Or remove database from Snowflake manually</li>
 <li>Or use a different database name</li>
 </ul>
@@ -2509,78 +2694,147 @@ resource "snowflake_database" "TEST_DB2" {
 <ul>
 <li>Ensure provider uses SYSADMIN role</li>
 <li>Verify user can assume SYSADMIN role</li>
-<li>Check that user has necessary privileges</li>
+<li>Check that roles exist for privilege grants</li>
+</ul>
+<h3 id="role-not-found-1"><a class="header" href="#role-not-found-1">Role Not Found</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Role does not exist
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure roles are created before databases</li>
+<li>Verify role names in <code>role_privileges</code> match module outputs</li>
+<li>Check that roles module is applied before database module</li>
 </ul>
 <h2 id="related-documentation-3"><a class="header" href="#related-documentation-3">Related Documentation</a></h2>
 <ul>
-<li><a href="resources/schemas.html">Schemas</a> - Created within databases</li>
-<li><a href="resources/grants.html">Grants and Privileges</a> - Granting database access</li>
-<li><a href="resources/../getting-started/initial-setup.html">Initial Setup</a> - Creating databases</li>
+<li><a href="modules/roles-module.html">Roles Module</a> - Creates roles that receive database privileges</li>
+<li><a href="modules/schema-module.html">Schema Module</a> - Creates schemas within databases</li>
+<li><a href="modules/../getting-started/initial-setup.html">Initial Setup</a> - Setting up databases</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="schemas"><a class="header" href="#schemas">Schemas</a></h1>
-<p>This document explains how schemas are created and managed in the Terraform configuration.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="schema-module"><a class="header" href="#schema-module">Schema Module</a></h1>
+<p>The Schema module manages Snowflake database schemas with automatic privilege grant management.</p>
 <h2 id="overview-4"><a class="header" href="#overview-4">Overview</a></h2>
-<p>Schemas in Snowflake are containers within databases that hold tables, views, and other objects. The configuration creates schemas directly in the root <code>main.tf</code> file.</p>
-<h2 id="resource-definition-1"><a class="header" href="#resource-definition-1">Resource Definition</a></h2>
+<p>The Schema module (<code>modules/snowflake/schema</code>) creates Snowflake schemas within databases and automatically grants privileges to specified roles. This module provides a complete solution for schema management including access control.</p>
+<h2 id="module-location-4"><a class="header" href="#module-location-4">Module Location</a></h2>
+<pre><code>modules/snowflake/schema/
+├── main.tf        # Schema resource definitions and grants
+├── variables.tf   # Input variables
+└── outputs.tf     # Output values
+</code></pre>
+<h2 id="usage-4"><a class="header" href="#usage-4">Usage</a></h2>
 <h3 id="basic-schema"><a class="header" href="#basic-schema">Basic Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "ADS" {
-  name     = "ADS"
-  database = snowflake_database.TEST_DB.name
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="schema-with-all-options"><a class="header" href="#schema-with-all-options">Schema with All Options</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "ADS" {
-  name                        = "ADS"
-  database                    = snowflake_database.TEST_DB.name
-  with_managed_access         = true
-  is_transient                = true
-  comment                     = "Schema for ads data"
-  data_retention_time_in_days = 1
-  provider                    = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h2 id="resource-properties-1"><a class="header" href="#resource-properties-1">Resource Properties</a></h2>
-<h3 id="required-properties-1"><a class="header" href="#required-properties-1">Required Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>name</code></td><td><code>string</code></td><td>Name of the schema</td></tr>
-<tr><td><code>database</code></td><td><code>string</code></td><td>Name of the parent database</td></tr>
-</tbody></table>
-</div>
-<h3 id="optional-properties-1"><a class="header" href="#optional-properties-1">Optional Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>comment</code></td><td><code>string</code></td><td><code>null</code></td><td>Comment describing the schema</td></tr>
-<tr><td><code>with_managed_access</code></td><td><code>bool</code></td><td><code>false</code></td><td>Enable managed access (object-level security)</td></tr>
-<tr><td><code>is_transient</code></td><td><code>bool</code></td><td><code>false</code></td><td>Whether schema is transient (no Time Travel)</td></tr>
-<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
-<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
-</tbody></table>
-</div>
-<h2 id="examples-4"><a class="header" href="#examples-4">Examples</a></h2>
-<h3 id="simple-schema"><a class="header" href="#simple-schema">Simple Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "MY_SCHEMA" {
-  name     = "MY_SCHEMA"
-  database = snowflake_database.MY_DB.name
-  provider = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "MY_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.MY_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "My schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="schema-with-managed-access"><a class="header" href="#schema-with-managed-access">Schema with Managed Access</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "SECURE_SCHEMA" {
-  name                = "SECURE_SCHEMA"
-  database            = snowflake_database.MY_DB.name
-  with_managed_access = true
-  comment             = "Schema with managed access for security"
-  provider            = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "SECURE_SCHEMA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.MY_DB.name
+      with_managed_access         = true
+      is_transient                = false
+      comment                     = "Schema with managed access for security"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
-<h3 id="transient-schema"><a class="header" href="#transient-schema">Transient Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "TEMP_SCHEMA" {
-  name         = "TEMP_SCHEMA"
-  database     = snowflake_database.MY_DB.name
-  is_transient = true
-  comment      = "Temporary schema without Time Travel"
-  provider     = snowflake.snowflake_sysadmin
+<h2 id="input-variables-4"><a class="header" href="#input-variables-4">Input Variables</a></h2>
+<h3 id="schema_map"><a class="header" href="#schema_map"><code>schema_map</code></a></h3>
+<p>Type: <code>map(object)</code><br />
+Required: Yes<br />
+Description: Map of schema names to schema configurations</p>
+<h4 id="schema-configuration-object"><a class="header" href="#schema-configuration-object">Schema Configuration Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>with_managed_access</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Enable managed access (object-level security)</td></tr>
+<tr><td><code>is_transient</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Whether schema is transient (no Time Travel)</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the schema</td></tr>
+<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td>No</td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h4 id="role-privilege-object-2"><a class="header" href="#role-privilege-object-2">Role Privilege Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Yes</td><td>Name of the role receiving privileges</td></tr>
+<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>Yes</td><td>List of privileges: “USAGE”, “MODIFY”, “CREATE TABLE”, “CREATE VIEW”, etc.</td></tr>
+</tbody></table>
+</div>
+<h2 id="resources-created-4"><a class="header" href="#resources-created-4">Resources Created</a></h2>
+<h3 id="snowflake_schemaschemas"><a class="header" href="#snowflake_schemaschemas"><code>snowflake_schema.SCHEMAS</code></a></h3>
+<p>Creates schemas using <code>for_each</code> over the <code>schema_map</code>.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>name</code>: Schema name (from map key)</li>
+<li><code>database</code>: Parent database name</li>
+<li><code>with_managed_access</code>: Managed access setting</li>
+<li><code>is_transient</code>: Transient setting</li>
+<li><code>comment</code>: Schema comment</li>
+<li><code>data_retention_time_in_days</code>: Time Travel retention</li>
+</ul>
+<h3 id="snowflake_grant_privileges_to_account_roleschema_grant"><a class="header" href="#snowflake_grant_privileges_to_account_roleschema_grant"><code>snowflake_grant_privileges_to_account_role.SCHEMA_GRANT</code></a></h3>
+<p>Automatically grants schema privileges to roles based on the <code>role_privileges</code> configuration.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>account_role_name</code>: Role receiving privileges</li>
+<li><code>privileges</code>: List of privileges</li>
+<li><code>on_schema.schema_name</code>: Fully qualified schema name (database.schema)</li>
+<li><code>with_grant_option</code>: Whether grant includes grant option</li>
+</ul>
+<p><strong>Dependencies:</strong></p>
+<ul>
+<li>Depends on <code>snowflake_schema.SCHEMAS</code> to ensure schemas exist before granting</li>
+</ul>
+<h2 id="outputs-7"><a class="header" href="#outputs-7">Outputs</a></h2>
+<h3 id="schemas"><a class="header" href="#schemas"><code>SCHEMAS</code></a></h3>
+<p>Type: <code>map(object)</code></p>
+<p>A map of all created schema resources, keyed by schema name.</p>
+<p><strong>Example Output:</strong></p>
+<pre><code class="language-hcl">{
+  "MY_SCHEMA" = {
+    name    = "MY_SCHEMA"
+    database = "MY_DB"
+    # ... other attributes
+  }
 }
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl"># Reference a schema in tables module
+schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
 </code></pre>
 <h2 id="managed-access"><a class="header" href="#managed-access">Managed Access</a></h2>
 <p>When <code>with_managed_access = true</code>:</p>
@@ -2591,11 +2845,13 @@ resource "snowflake_database" "TEST_DB2" {
 <li>Recommended for sensitive data</li>
 </ul>
 <p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_schema" "SECURE_SCHEMA" {
-  name                = "SECURE_SCHEMA"
-  database            = snowflake_database.MY_DB.name
-  with_managed_access = true
-  provider            = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">schema_map = {
+  "SECURE_SCHEMA" = {
+    database_name       = module.ALL_DATABASES.DATABASES.MY_DB.name
+    with_managed_access = true  # Enable managed access
+    is_transient        = false
+    # ... other configuration
+  }
 }
 </code></pre>
 <h2 id="transient-schemas"><a class="header" href="#transient-schemas">Transient Schemas</a></h2>
@@ -2607,11 +2863,12 @@ resource "snowflake_database" "TEST_DB2" {
 <li>Use for temporary or non-critical data</li>
 </ul>
 <p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_schema" "TEMP_SCHEMA" {
-  name         = "TEMP_SCHEMA"
-  database     = snowflake_database.MY_DB.name
-  is_transient = true
-  provider     = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">schema_map = {
+  "TEMP_SCHEMA" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    is_transient  = true  # Transient schema
+    # ... other configuration
+  }
 }
 </code></pre>
 <h2 id="data-retention"><a class="header" href="#data-retention">Data Retention</a></h2>
@@ -2621,46 +2878,7 @@ resource "snowflake_database" "TEST_DB2" {
 <li>Can override database retention</li>
 <li>Same retention limits as databases (1-90 days standard, up to 1 year enterprise)</li>
 </ul>
-<h2 id="provider-requirements-4"><a class="header" href="#provider-requirements-4">Provider Requirements</a></h2>
-<p>Schemas require the <code>snowflake_sysadmin</code> provider because:</p>
-<ul>
-<li>Creating schemas requires SYSADMIN privileges</li>
-<li>Schema management is a system administration task</li>
-</ul>
-<h2 id="dependencies-4"><a class="header" href="#dependencies-4">Dependencies</a></h2>
-<h3 id="required-dependencies"><a class="header" href="#required-dependencies">Required Dependencies</a></h3>
-<p>Schemas depend on databases:</p>
-<ul>
-<li>Must reference an existing database</li>
-<li>Database must be created before schema</li>
-</ul>
-<p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_schema" "ADS" {
-  name     = "ADS"
-  database = snowflake_database.TEST_DB.name  # References database
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="dependent-resources-1"><a class="header" href="#dependent-resources-1">Dependent Resources</a></h3>
-<p>The following resources depend on schemas:</p>
-<ul>
-<li>Tables (created within schemas)</li>
-<li>Views (created within schemas)</li>
-<li>Grants (granted on schemas)</li>
-</ul>
-<h2 id="granting-access-1"><a class="header" href="#granting-access-1">Granting Access</a></h2>
-<p>Schemas can be granted to roles for access control:</p>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_schema {
-    schema_name = snowflake_schema.ADS.fully_qualified_name
-  }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="available-privileges-2"><a class="header" href="#available-privileges-2">Available Privileges</a></h3>
+<h2 id="available-privileges-2"><a class="header" href="#available-privileges-2">Available Privileges</a></h2>
 <ul>
 <li><strong>USAGE</strong>: Use the schema (required to access tables/views)</li>
 <li><strong>MODIFY</strong>: Modify schema settings</li>
@@ -2678,18 +2896,96 @@ resource "snowflake_database" "TEST_DB2" {
 <li><strong>OWNERSHIP</strong>: Full ownership of the schema</li>
 <li><strong>ALL PRIVILEGES</strong>: All of the above</li>
 </ul>
-<h2 id="fully-qualified-names"><a class="header" href="#fully-qualified-names">Fully Qualified Names</a></h2>
-<p>Schemas have a <code>fully_qualified_name</code> attribute that includes the database:</p>
-<pre><code class="language-hcl"># Reference fully qualified name
-schema_name = snowflake_schema.ADS.fully_qualified_name
-# Results in: "TEST_DB.ADS"
-</code></pre>
-<p>Use <code>fully_qualified_name</code> when:</p>
+<h2 id="provider-requirements-4"><a class="header" href="#provider-requirements-4">Provider Requirements</a></h2>
+<p>The module requires the <code>snowflake_sysadmin</code> provider alias because:</p>
 <ul>
-<li>Granting privileges on schemas</li>
-<li>Referencing schemas in other resources</li>
-<li>Need database-qualified schema name</li>
+<li>Creating schemas requires SYSADMIN privileges</li>
+<li>Granting schema privileges requires SYSADMIN privileges</li>
 </ul>
+<h2 id="dependencies-4"><a class="header" href="#dependencies-4">Dependencies</a></h2>
+<h3 id="internal-dependencies-4"><a class="header" href="#internal-dependencies-4">Internal Dependencies</a></h3>
+<ul>
+<li><code>snowflake_grant_privileges_to_account_role.SCHEMA_GRANT</code> depends on <code>snowflake_schema.SCHEMAS</code></li>
+</ul>
+<h3 id="external-dependencies-4"><a class="header" href="#external-dependencies-4">External Dependencies</a></h3>
+<ul>
+<li><strong>Database Module</strong>: Schemas must reference existing databases</li>
+<li><strong>Roles Module</strong>: Schemas reference roles from the roles module for privilege grants</li>
+</ul>
+<h2 id="examples-4"><a class="header" href="#examples-4">Examples</a></h2>
+<h3 id="simple-schema"><a class="header" href="#simple-schema">Simple Schema</a></h3>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "PUBLIC" = {
+      database_name       = module.ALL_DATABASES.DATABASES.MY_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "Public schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="secure-schema-with-managed-access"><a class="header" href="#secure-schema-with-managed-access">Secure Schema with Managed Access</a></h3>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "SECURE_DATA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.PRODUCTION_DB.name
+      with_managed_access         = true
+      is_transient                = false
+      comment                     = "Secure schema with managed access"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+          privileges        = ["USAGE", "CREATE TABLE", "CREATE VIEW"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="transient-schema-for-temporary-data"><a class="header" href="#transient-schema-for-temporary-data">Transient Schema for Temporary Data</a></h3>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "TEMP_STAGING" = {
+      database_name       = module.ALL_DATABASES.DATABASES.STAGING_DB.name
+      with_managed_access = false
+      is_transient        = true
+      comment             = "Temporary staging schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+          privileges        = ["USAGE", "CREATE TABLE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
 <h2 id="best-practices-8"><a class="header" href="#best-practices-8">Best Practices</a></h2>
 <ol>
 <li><strong>Descriptive Names</strong>: Use clear, descriptive schema names</li>
@@ -2697,7 +2993,8 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 <li><strong>Managed Access</strong>: Use managed access for sensitive data</li>
 <li><strong>Transient for Temp</strong>: Use transient for temporary data</li>
 <li><strong>Access Control</strong>: Grant USAGE to roles that need access</li>
-<li><strong>Naming Conventions</strong>: Follow consistent naming conventions</li>
+<li><strong>Minimal Privileges</strong>: Grant only necessary privileges</li>
+<li><strong>Database Reference</strong>: Always reference databases from the database module</li>
 </ol>
 <h2 id="troubleshooting-7"><a class="header" href="#troubleshooting-7">Troubleshooting</a></h2>
 <h3 id="schema-already-exists"><a class="header" href="#schema-already-exists">Schema Already Exists</a></h3>
@@ -2706,7 +3003,7 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Import existing schema: <code>terraform import snowflake_schema.ADS "TEST_DB.ADS"</code></li>
+<li>Import existing schema: <code>terraform import module.ALL_SCHEMAS.snowflake_schema.SCHEMAS["SCHEMA_NAME"] "DB.SCHEMA"</code></li>
 <li>Or remove schema from Snowflake manually</li>
 <li>Or use a different schema name</li>
 </ul>
@@ -2719,6 +3016,7 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 <li>Ensure database is created before schema</li>
 <li>Verify database name is correct</li>
 <li>Check that database exists in Snowflake</li>
+<li>Reference database using module output: <code>module.ALL_DATABASES.DATABASES.DB_NAME.name</code></li>
 </ul>
 <h3 id="insufficient-privileges-5"><a class="header" href="#insufficient-privileges-5">Insufficient Privileges</a></h3>
 <p><strong>Error:</strong></p>
@@ -2732,61 +3030,182 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 </ul>
 <h2 id="related-documentation-4"><a class="header" href="#related-documentation-4">Related Documentation</a></h2>
 <ul>
-<li><a href="resources/databases.html">Databases</a> - Parent containers for schemas</li>
-<li><a href="resources/tables.html">Tables</a> - Created within schemas</li>
-<li><a href="resources/views.html">Views</a> - Created within schemas</li>
-<li><a href="resources/grants.html">Grants and Privileges</a> - Granting schema access</li>
+<li><a href="modules/database-module.html">Database Module</a> - Creates parent databases</li>
+<li><a href="modules/roles-module.html">Roles Module</a> - Creates roles that receive schema privileges</li>
+<li><a href="modules/tables-module.html">Tables Module</a> - Creates tables within schemas</li>
+<li><a href="modules/views-module.html">Views Module</a> - Creates views within schemas</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="tables"><a class="header" href="#tables">Tables</a></h1>
-<p>This document explains how tables are created and managed in the Terraform configuration.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="tables-module"><a class="header" href="#tables-module">Tables Module</a></h1>
+<p>The Tables module manages Snowflake tables with automatic privilege grant management.</p>
 <h2 id="overview-5"><a class="header" href="#overview-5">Overview</a></h2>
-<p>Tables in Snowflake store structured data with defined columns and data types. The configuration creates tables directly in the root <code>main.tf</code> file within schemas.</p>
-<h2 id="resource-definition-2"><a class="header" href="#resource-definition-2">Resource Definition</a></h2>
+<p>The Tables module (<code>modules/snowflake/tables</code>) creates Snowflake tables within schemas and automatically grants privileges to specified roles. This module provides a complete solution for table management including column definitions and access control.</p>
+<h2 id="module-location-5"><a class="header" href="#module-location-5">Module Location</a></h2>
+<pre><code>modules/snowflake/tables/
+├── main.tf        # Table resource definitions and grants
+├── variables.tf   # Input variables
+└── outputs.tf     # Output values
+</code></pre>
+<h2 id="usage-5"><a class="header" href="#usage-5">Usage</a></h2>
 <h3 id="basic-table"><a class="header" href="#basic-table">Basic Table</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "FACEBOOK_ADS" {
-  database = snowflake_database.TEST_DB.name
-  schema   = snowflake_schema.ADS.name
-  name     = "FACEBOOK_ADS"
-  comment  = "A table for facebook ads data"
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
   }
   
-  column {
-    name = "AD_NAME"
-    type = "VARCHAR(16777216)"
+  table_map = {
+    "MY_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+      comment       = "My table"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "NAME"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
-<h2 id="resource-properties-2"><a class="header" href="#resource-properties-2">Resource Properties</a></h2>
-<h3 id="required-properties-2"><a class="header" href="#required-properties-2">Required Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>name</code></td><td><code>string</code></td><td>Name of the table</td></tr>
-<tr><td><code>database</code></td><td><code>string</code></td><td>Name of the parent database</td></tr>
-<tr><td><code>schema</code></td><td><code>string</code></td><td>Name of the parent schema</td></tr>
+<h3 id="table-with-all-options"><a class="header" href="#table-with-all-options">Table with All Options</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "ORDERS" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.SALES_SCHEMA.name
+      comment       = "Orders table"
+      columns = [
+        {
+          name     = "ORDER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+          comment  = "Primary key"
+        },
+        {
+          name     = "CUSTOMER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "ORDER_DATE"
+          type     = "TIMESTAMP_NTZ(9)"
+          nullable = false
+        },
+        {
+          name     = "TOTAL_AMOUNT"
+          type     = "NUMBER(10,2)"
+          nullable = true
+          comment  = "Order total in dollars"
+        },
+        {
+          name     = "METADATA"
+          type     = "VARIANT"
+          nullable = true
+          comment  = "Additional metadata in JSON format"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT", "INSERT", "UPDATE"]
+        }
+      ]
+      with_grant_option = false
+    }
+  }
+}
+</code></pre>
+<h2 id="input-variables-5"><a class="header" href="#input-variables-5">Input Variables</a></h2>
+<h3 id="table_map"><a class="header" href="#table_map"><code>table_map</code></a></h3>
+<p>Type: <code>map(object)</code><br />
+Required: Yes<br />
+Description: Map of table names to table configurations</p>
+<h4 id="table-configuration-object"><a class="header" href="#table-configuration-object">Table Configuration Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>schema_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent schema</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the table</td></tr>
+<tr><td><code>columns</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of column definitions</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
 </tbody></table>
 </div>
-<h3 id="optional-properties-2"><a class="header" href="#optional-properties-2">Optional Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>comment</code></td><td><code>string</code></td><td><code>null</code></td><td>Comment describing the table</td></tr>
-<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
+<h4 id="column-object"><a class="header" href="#column-object">Column Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Column name</td></tr>
+<tr><td><code>type</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Column data type</td></tr>
+<tr><td><code>nullable</code></td><td><code>bool</code></td><td>No</td><td><code>true</code></td><td>Whether column allows NULL values</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>null</code></td><td>Comment describing the column</td></tr>
 </tbody></table>
 </div>
-<h3 id="column-block"><a class="header" href="#column-block">Column Block</a></h3>
-<p>Each table must have at least one column block:</p>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>name</code></td><td><code>string</code></td><td>Yes</td><td>Column name</td></tr>
-<tr><td><code>type</code></td><td><code>string</code></td><td>Yes</td><td>Column data type</td></tr>
-<tr><td><code>nullable</code></td><td><code>bool</code></td><td>No</td><td>Whether column allows NULL values</td></tr>
-<tr><td><code>default</code></td><td><code>string</code></td><td>No</td><td>Default value for the column</td></tr>
-<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td>Comment describing the column</td></tr>
+<h4 id="role-privilege-object-3"><a class="header" href="#role-privilege-object-3">Role Privilege Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Yes</td><td>Name of the role receiving privileges</td></tr>
+<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>Yes</td><td>List of privileges: “SELECT”, “INSERT”, “UPDATE”, “DELETE”, etc.</td></tr>
 </tbody></table>
 </div>
+<h2 id="resources-created-5"><a class="header" href="#resources-created-5">Resources Created</a></h2>
+<h3 id="snowflake_tabletables"><a class="header" href="#snowflake_tabletables"><code>snowflake_table.TABLES</code></a></h3>
+<p>Creates tables using <code>for_each</code> over the <code>table_map</code>.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>name</code>: Table name (from map key)</li>
+<li><code>database</code>: Parent database name</li>
+<li><code>schema</code>: Parent schema name</li>
+<li><code>comment</code>: Table comment</li>
+<li><code>column</code>: Dynamic blocks for each column</li>
+</ul>
+<h3 id="snowflake_grant_privileges_to_account_roletable_grants"><a class="header" href="#snowflake_grant_privileges_to_account_roletable_grants"><code>snowflake_grant_privileges_to_account_role.TABLE_GRANTS</code></a></h3>
+<p>Automatically grants table privileges to roles based on the <code>role_privileges</code> configuration.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>account_role_name</code>: Role receiving privileges</li>
+<li><code>privileges</code>: List of privileges</li>
+<li><code>on_schema_object.object_type</code>: “TABLE”</li>
+<li><code>on_schema_object.object_name</code>: Fully qualified table name (database.schema.table)</li>
+<li><code>with_grant_option</code>: Whether grant includes grant option</li>
+</ul>
+<p><strong>Dependencies:</strong></p>
+<ul>
+<li>Depends on <code>snowflake_table.TABLES</code> to ensure tables exist before granting</li>
+</ul>
+<h2 id="outputs-8"><a class="header" href="#outputs-8">Outputs</a></h2>
+<h3 id="tables"><a class="header" href="#tables"><code>TABLES</code></a></h3>
+<p>Type: <code>map(object)</code></p>
+<p>A map of all created table resources, keyed by table name.</p>
+<p><strong>Example Output:</strong></p>
+<pre><code class="language-hcl">{
+  "MY_TABLE" = {
+    name     = "MY_TABLE"
+    database = "MY_DB"
+    schema   = "MY_SCHEMA"
+    # ... other attributes
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl"># Reference a table in views module
+table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
+</code></pre>
 <h2 id="data-types"><a class="header" href="#data-types">Data Types</a></h2>
 <p>Common Snowflake data types:</p>
 <h3 id="numeric-types"><a class="header" href="#numeric-types">Numeric Types</a></h3>
@@ -2817,160 +3236,7 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 <li><code>ARRAY</code>: Array of values</li>
 <li><code>OBJECT</code>: Key-value pairs</li>
 </ul>
-<h2 id="examples-5"><a class="header" href="#examples-5">Examples</a></h2>
-<h3 id="simple-table"><a class="header" href="#simple-table">Simple Table</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "USERS" {
-  database = snowflake_database.MY_DB.name
-  schema   = snowflake_schema.PUBLIC.name
-  name     = "USERS"
-  comment  = "User table"
-  
-  column {
-    name     = "USER_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-  }
-  
-  column {
-    name = "USERNAME"
-    type = "VARCHAR(255)"
-  }
-  
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="table-with-all-column-options"><a class="header" href="#table-with-all-column-options">Table with All Column Options</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "ORDERS" {
-  database = snowflake_database.MY_DB.name
-  schema   = snowflake_schema.SALES.name
-  name     = "ORDERS"
-  comment  = "Orders table"
-  
-  column {
-    name     = "ORDER_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-    comment  = "Primary key"
-  }
-  
-  column {
-    name     = "ORDER_DATE"
-    type     = "TIMESTAMP_NTZ(9)"
-    nullable = false
-    default  = "CURRENT_TIMESTAMP()"
-  }
-  
-  column {
-    name     = "CUSTOMER_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "TOTAL_AMOUNT"
-    type     = "NUMBER(10,2)"
-    nullable = true
-    comment  = "Order total in dollars"
-  }
-  
-  column {
-    name     = "ORDER_DATA"
-    type     = "VARIANT"
-    nullable = true
-    comment  = "Additional order data in JSON format"
-  }
-  
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="table-with-variant-column"><a class="header" href="#table-with-variant-column">Table with Variant Column</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "FACEBOOK_ADS" {
-  database = snowflake_database.TEST_DB.name
-  schema   = snowflake_schema.ADS.name
-  name     = "FACEBOOK_ADS"
-  comment  = "A table for facebook ads data"
-  
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "AD_NAME"
-    type     = "VARCHAR(16777216)"
-    nullable = false
-  }
-  
-  column {
-    name = "AD_DATE"
-    type = "TIMESTAMP_NTZ(9)"
-  }
-  
-  column {
-    name    = "EXAMPLE_VARIANT"
-    type    = "VARIANT"
-    comment = "extra data for the ad"
-  }
-  
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h2 id="provider-requirements-5"><a class="header" href="#provider-requirements-5">Provider Requirements</a></h2>
-<p>Tables require the <code>snowflake_sysadmin</code> provider because:</p>
-<ul>
-<li>Creating tables requires SYSADMIN privileges</li>
-<li>Table management is a system administration task</li>
-</ul>
-<p><strong>Note:</strong> The provider configuration includes <code>preview_features_enabled = ["snowflake_table_resource"]</code> which may be required for table operations.</p>
-<h2 id="dependencies-5"><a class="header" href="#dependencies-5">Dependencies</a></h2>
-<h3 id="required-dependencies-1"><a class="header" href="#required-dependencies-1">Required Dependencies</a></h3>
-<p>Tables depend on:</p>
-<ul>
-<li><strong>Database</strong>: Must reference an existing database</li>
-<li><strong>Schema</strong>: Must reference an existing schema</li>
-<li>Schema must be created before table</li>
-</ul>
-<p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_table" "MY_TABLE" {
-  database = snowflake_database.TEST_DB.name  # References database
-  schema   = snowflake_schema.ADS.name        # References schema
-  name     = "MY_TABLE"
-  # ...
-}
-</code></pre>
-<h3 id="dependent-resources-2"><a class="header" href="#dependent-resources-2">Dependent Resources</a></h3>
-<p>The following resources depend on tables:</p>
-<ul>
-<li>Views (may reference tables)</li>
-<li>Grants (granted on tables)</li>
-</ul>
-<h2 id="fully-qualified-names-1"><a class="header" href="#fully-qualified-names-1">Fully Qualified Names</a></h2>
-<p>Tables have a <code>fully_qualified_name</code> attribute that includes database and schema:</p>
-<pre><code class="language-hcl"># Reference fully qualified name
-object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
-# Results in: "TEST_DB.ADS.FACEBOOK_ADS"
-</code></pre>
-<p>Use <code>fully_qualified_name</code> when:</p>
-<ul>
-<li>Granting privileges on tables</li>
-<li>Referencing tables in other resources</li>
-<li>Need fully qualified table name</li>
-</ul>
-<h2 id="granting-access-2"><a class="header" href="#granting-access-2">Granting Access</a></h2>
-<p>Tables can be granted to roles for access control:</p>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
-  }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="available-privileges-3"><a class="header" href="#available-privileges-3">Available Privileges</a></h3>
+<h2 id="available-privileges-3"><a class="header" href="#available-privileges-3">Available Privileges</a></h2>
 <ul>
 <li><strong>SELECT</strong>: Query the table</li>
 <li><strong>INSERT</strong>: Insert rows into the table</li>
@@ -2981,15 +3247,156 @@ object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
 <li><strong>OWNERSHIP</strong>: Full ownership of the table</li>
 <li><strong>ALL PRIVILEGES</strong>: All of the above</li>
 </ul>
+<h2 id="provider-requirements-5"><a class="header" href="#provider-requirements-5">Provider Requirements</a></h2>
+<p>The module requires the <code>snowflake_sysadmin</code> provider alias because:</p>
+<ul>
+<li>Creating tables requires SYSADMIN privileges</li>
+<li>Granting table privileges requires SYSADMIN privileges</li>
+</ul>
+<p><strong>Note:</strong> The provider configuration includes <code>preview_features_enabled = ["snowflake_table_resource"]</code> which may be required for table operations.</p>
+<h2 id="dependencies-5"><a class="header" href="#dependencies-5">Dependencies</a></h2>
+<h3 id="internal-dependencies-5"><a class="header" href="#internal-dependencies-5">Internal Dependencies</a></h3>
+<ul>
+<li><code>snowflake_grant_privileges_to_account_role.TABLE_GRANTS</code> depends on <code>snowflake_table.TABLES</code></li>
+</ul>
+<h3 id="external-dependencies-5"><a class="header" href="#external-dependencies-5">External Dependencies</a></h3>
+<ul>
+<li><strong>Database Module</strong>: Tables must reference existing databases</li>
+<li><strong>Schema Module</strong>: Tables must reference existing schemas</li>
+<li><strong>Roles Module</strong>: Tables reference roles from the roles module for privilege grants</li>
+</ul>
+<h2 id="examples-5"><a class="header" href="#examples-5">Examples</a></h2>
+<h3 id="simple-table"><a class="header" href="#simple-table">Simple Table</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "USERS" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.PUBLIC.name
+      comment       = "User table"
+      columns = [
+        {
+          name     = "USER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "USERNAME"
+          type = "VARCHAR(255)"
+        },
+        {
+          name = "EMAIL"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="table-with-variant-column"><a class="header" href="#table-with-variant-column">Table with Variant Column</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "FACEBOOK_ADS" = {
+      database_name = module.ALL_DATABASES.DATABASES.TEST_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+      comment       = "A table for facebook ads data"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "AD_NAME"
+          type     = "VARCHAR(255)"
+          nullable = false
+        },
+        {
+          name = "AD_DATE"
+          type = "TIMESTAMP_NTZ(9)"
+        },
+        {
+          name    = "EXAMPLE_VARIANT"
+          type    = "VARIANT"
+          comment = "extra data for the ad"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="read-write-table"><a class="header" href="#read-write-table">Read-Write Table</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "ORDERS" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.SALES_SCHEMA.name
+      comment       = "Orders table"
+      columns = [
+        {
+          name     = "ORDER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "CUSTOMER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "AMOUNT"
+          type     = "NUMBER(10,2)"
+          nullable = false
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
 <h2 id="best-practices-9"><a class="header" href="#best-practices-9">Best Practices</a></h2>
 <ol>
 <li><strong>Descriptive Names</strong>: Use clear, descriptive table and column names</li>
 <li><strong>Comments</strong>: Always add comments explaining table and column purpose</li>
 <li><strong>Nullable Columns</strong>: Explicitly set <code>nullable</code> for clarity</li>
 <li><strong>Data Types</strong>: Choose appropriate data types for data</li>
-<li><strong>Primary Keys</strong>: Consider adding primary key constraints (via ALTER TABLE)</li>
 <li><strong>Access Control</strong>: Grant appropriate privileges to roles</li>
-<li><strong>Naming Conventions</strong>: Follow consistent naming conventions</li>
+<li><strong>Minimal Privileges</strong>: Grant only necessary privileges</li>
+<li><strong>Database/Schema Reference</strong>: Always reference databases and schemas from modules</li>
 </ol>
 <h2 id="troubleshooting-8"><a class="header" href="#troubleshooting-8">Troubleshooting</a></h2>
 <h3 id="table-already-exists"><a class="header" href="#table-already-exists">Table Already Exists</a></h3>
@@ -2998,7 +3405,7 @@ object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Import existing table: <code>terraform import snowflake_table.FACEBOOK_ADS "TEST_DB.ADS.FACEBOOK_ADS"</code></li>
+<li>Import existing table: <code>terraform import module.ALL_TABLES.snowflake_table.TABLES["TABLE_NAME"] "DB.SCHEMA.TABLE"</code></li>
 <li>Or remove table from Snowflake manually</li>
 <li>Or use a different table name</li>
 </ul>
@@ -3011,6 +3418,7 @@ object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
 <li>Ensure schema is created before table</li>
 <li>Verify schema name is correct</li>
 <li>Check that schema exists in Snowflake</li>
+<li>Reference schema using module output: <code>module.ALL_SCHEMAS.SCHEMAS.SCHEMA_NAME.name</code></li>
 </ul>
 <h3 id="invalid-data-type"><a class="header" href="#invalid-data-type">Invalid Data Type</a></h3>
 <p><strong>Error:</strong></p>
@@ -3034,125 +3442,146 @@ object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
 </ul>
 <h2 id="related-documentation-5"><a class="header" href="#related-documentation-5">Related Documentation</a></h2>
 <ul>
-<li><a href="resources/schemas.html">Schemas</a> - Parent containers for tables</li>
-<li><a href="resources/views.html">Views</a> - May reference tables</li>
-<li><a href="resources/grants.html">Grants and Privileges</a> - Granting table access</li>
+<li><a href="modules/schema-module.html">Schema Module</a> - Creates parent schemas</li>
+<li><a href="modules/database-module.html">Database Module</a> - Creates parent databases</li>
+<li><a href="modules/roles-module.html">Roles Module</a> - Creates roles that receive table privileges</li>
+<li><a href="modules/views-module.html">Views Module</a> - Creates views that may reference tables</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="views"><a class="header" href="#views">Views</a></h1>
-<p>This document explains how views are created and managed in the Terraform configuration.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="views-module"><a class="header" href="#views-module">Views Module</a></h1>
+<p>The Views module manages Snowflake views with automatic privilege grant management.</p>
 <h2 id="overview-6"><a class="header" href="#overview-6">Overview</a></h2>
-<p>Views in Snowflake are virtual tables defined by SQL queries. They provide a way to present data from one or more tables in a specific format. The configuration creates views directly in the root <code>main.tf</code> file within schemas.</p>
-<h2 id="resource-definition-3"><a class="header" href="#resource-definition-3">Resource Definition</a></h2>
-<h3 id="basic-view"><a class="header" href="#basic-view">Basic View</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "AGG_FACEBOOK_ADS" {
-  database  = snowflake_database.TEST_DB.name
-  schema    = snowflake_schema.ADS.name
-  name      = "AGG_FACEBOOK_ADS"
-  statement = &lt;&lt;-SQL
-    SELECT AD_DATE, COUNT(1) AS COUNT_ADS 
-    FROM FACEBOOK_ADS 
-    GROUP BY ALL;
-  SQL
-  comment   = "Aggregated view for facebook ads"
-  
-  provider = snowflake.snowflake_sysadmin
-}
+<p>The Views module (<code>modules/snowflake/views</code>) creates Snowflake views within schemas and automatically grants privileges to specified roles. This module provides a complete solution for view management including SQL statement definitions and access control.</p>
+<h2 id="module-location-6"><a class="header" href="#module-location-6">Module Location</a></h2>
+<pre><code>modules/snowflake/views/
+├── main.tf        # View resource definitions and grants
+├── variables.tf   # Input variables
+└── outputs.tf     # Output values
 </code></pre>
-<h2 id="resource-properties-3"><a class="header" href="#resource-properties-3">Resource Properties</a></h2>
-<h3 id="required-properties-3"><a class="header" href="#required-properties-3">Required Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>name</code></td><td><code>string</code></td><td>Name of the view</td></tr>
-<tr><td><code>database</code></td><td><code>string</code></td><td>Name of the parent database</td></tr>
-<tr><td><code>schema</code></td><td><code>string</code></td><td>Name of the parent schema</td></tr>
-<tr><td><code>statement</code></td><td><code>string</code></td><td>SQL SELECT statement defining the view</td></tr>
-</tbody></table>
-</div>
-<h3 id="optional-properties-3"><a class="header" href="#optional-properties-3">Optional Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>comment</code></td><td><code>string</code></td><td><code>null</code></td><td>Comment describing the view</td></tr>
-<tr><td><code>is_secure</code></td><td><code>bool</code></td><td><code>false</code></td><td>Whether view is secure (hides underlying query)</td></tr>
-<tr><td><code>or_replace</code></td><td><code>bool</code></td><td><code>false</code></td><td>Whether to replace existing view</td></tr>
-<tr><td><code>depends_on</code></td><td><code>list</code></td><td><code>[]</code></td><td>Resources this view depends on</td></tr>
-<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
-</tbody></table>
-</div>
-<h2 id="examples-6"><a class="header" href="#examples-6">Examples</a></h2>
-<h3 id="simple-view"><a class="header" href="#simple-view">Simple View</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "USER_SUMMARY" {
-  database  = snowflake_database.MY_DB.name
-  schema    = snowflake_schema.PUBLIC.name
-  name      = "USER_SUMMARY"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      USER_ID,
-      USERNAME,
-      CREATED_DATE
-    FROM USERS
-    WHERE ACTIVE = TRUE;
-  SQL
-  comment   = "Summary of active users"
+<h2 id="usage-6"><a class="header" href="#usage-6">Usage</a></h2>
+<h3 id="basic-view"><a class="header" href="#basic-view">Basic View</a></h3>
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
   
-  provider = snowflake.snowflake_sysadmin
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  view_map = {
+    "MY_VIEW" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          ID,
+          NAME
+        FROM MY_TABLE
+        WHERE ACTIVE = TRUE;
+      SQL
+      comment       = "My view"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="aggregated-view"><a class="header" href="#aggregated-view">Aggregated View</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "AGG_FACEBOOK_ADS" {
-  database  = snowflake_database.TEST_DB.name
-  schema    = snowflake_schema.ADS.name
-  name      = "AGG_FACEBOOK_ADS"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      AD_DATE, 
-      COUNT(1) AS COUNT_ADS 
-    FROM FACEBOOK_ADS 
-    GROUP BY ALL;
-  SQL
-  comment   = "Aggregated view for facebook ads"
-  depends_on = [snowflake_table.FACEBOOK_ADS]
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
   
-  provider = snowflake.snowflake_sysadmin
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  view_map = {
+    "AGG_FACEBOOK_ADS" = {
+      database_name = module.ALL_DATABASES.DATABASES.TEST_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          AD_DATE, 
+          COUNT(1) AS COUNT_ADS 
+        FROM ${module.ALL_TABLES.TABLES.FACEBOOK_ADS.name}
+        GROUP BY AD_DATE;
+      SQL
+      comment       = "Aggregated view for facebook ads"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
-<h3 id="view-with-joins"><a class="header" href="#view-with-joins">View with Joins</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "ORDER_DETAILS" {
-  database  = snowflake_database.MY_DB.name
-  schema    = snowflake_schema.SALES.name
-  name      = "ORDER_DETAILS"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      o.ORDER_ID,
-      o.ORDER_DATE,
-      c.CUSTOMER_NAME,
-      c.CUSTOMER_EMAIL,
-      o.TOTAL_AMOUNT
-    FROM ORDERS o
-    JOIN CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
-    WHERE o.ORDER_DATE &gt;= CURRENT_DATE - 30;
-  SQL
-  comment   = "Order details with customer information"
-  depends_on = [snowflake_table.ORDERS, snowflake_table.CUSTOMERS]
-  
-  provider = snowflake.snowflake_sysadmin
+<h2 id="input-variables-6"><a class="header" href="#input-variables-6">Input Variables</a></h2>
+<h3 id="view_map"><a class="header" href="#view_map"><code>view_map</code></a></h3>
+<p>Type: <code>map(object)</code><br />
+Required: Yes<br />
+Description: Map of view names to view configurations</p>
+<h4 id="view-configuration-object"><a class="header" href="#view-configuration-object">View Configuration Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>schema_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent schema</td></tr>
+<tr><td><code>statement</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>SQL SELECT statement defining the view</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the view</td></tr>
+<tr><td><code>depends_on</code></td><td><code>list(string)</code></td><td>No</td><td><code>[]</code></td><td>Optional list of dependent resource addresses</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h4 id="role-privilege-object-4"><a class="header" href="#role-privilege-object-4">Role Privilege Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Yes</td><td>Name of the role receiving privileges</td></tr>
+<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>Yes</td><td>List of privileges: “SELECT”, “REFERENCES”, “OWNERSHIP”, “ALL PRIVILEGES”</td></tr>
+</tbody></table>
+</div>
+<h2 id="resources-created-6"><a class="header" href="#resources-created-6">Resources Created</a></h2>
+<h3 id="snowflake_viewviews"><a class="header" href="#snowflake_viewviews"><code>snowflake_view.VIEWS</code></a></h3>
+<p>Creates views using <code>for_each</code> over the <code>view_map</code>.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>name</code>: View name (from map key)</li>
+<li><code>database</code>: Parent database name</li>
+<li><code>schema</code>: Parent schema name</li>
+<li><code>statement</code>: SQL SELECT statement</li>
+<li><code>comment</code>: View comment</li>
+</ul>
+<h3 id="snowflake_grant_privileges_to_account_roleview_grants"><a class="header" href="#snowflake_grant_privileges_to_account_roleview_grants"><code>snowflake_grant_privileges_to_account_role.VIEW_GRANTS</code></a></h3>
+<p>Automatically grants view privileges to roles based on the <code>role_privileges</code> configuration.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>account_role_name</code>: Role receiving privileges</li>
+<li><code>privileges</code>: List of privileges</li>
+<li><code>on_schema_object.object_type</code>: “VIEW”</li>
+<li><code>on_schema_object.object_name</code>: Fully qualified view name (database.schema.view)</li>
+<li><code>with_grant_option</code>: Whether grant includes grant option</li>
+</ul>
+<p><strong>Dependencies:</strong></p>
+<ul>
+<li>Depends on <code>snowflake_view.VIEWS</code> to ensure views exist before granting</li>
+</ul>
+<h2 id="outputs-9"><a class="header" href="#outputs-9">Outputs</a></h2>
+<h3 id="views"><a class="header" href="#views"><code>VIEWS</code></a></h3>
+<p>Type: <code>map(object)</code></p>
+<p>A map of all created view resources, keyed by view name.</p>
+<p><strong>Example Output:</strong></p>
+<pre><code class="language-hcl">{
+  "MY_VIEW" = {
+    name     = "MY_VIEW"
+    database = "MY_DB"
+    schema   = "MY_SCHEMA"
+    # ... other attributes
+  }
 }
 </code></pre>
-<h3 id="secure-view"><a class="header" href="#secure-view">Secure View</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "SECURE_USER_DATA" {
-  database  = snowflake_database.MY_DB.name
-  schema    = snowflake_schema.SECURE.name
-  name      = "SECURE_USER_DATA"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      USER_ID,
-      USERNAME,
-      EMAIL
-    FROM USERS
-    WHERE DEPARTMENT = CURRENT_ROLE();
-  SQL
-  comment   = "Secure view with row-level security"
-  is_secure = true
-  
-  provider = snowflake.snowflake_sysadmin
-}
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl"># Reference a view
+view_name = module.ALL_VIEWS.VIEWS.MY_VIEW.name
 </code></pre>
 <h2 id="sql-statement-format"><a class="header" href="#sql-statement-format">SQL Statement Format</a></h2>
 <p>The <code>statement</code> property contains the SQL SELECT statement that defines the view:</p>
@@ -3179,91 +3608,26 @@ SQL
 <li>Simple single-line queries</li>
 <li>No special formatting needed</li>
 </ul>
+<h3 id="referencing-tables"><a class="header" href="#referencing-tables">Referencing Tables</a></h3>
+<p>You can reference tables using Terraform interpolation:</p>
+<pre><code class="language-hcl">statement = &lt;&lt;-SQL
+  SELECT * FROM ${module.ALL_TABLES.TABLES.MY_TABLE.name}
+  WHERE ACTIVE = TRUE;
+SQL
+</code></pre>
 <h2 id="dependencies-6"><a class="header" href="#dependencies-6">Dependencies</a></h2>
-<p>Views should explicitly declare dependencies on tables they reference:</p>
-<pre><code class="language-hcl">resource "snowflake_view" "MY_VIEW" {
-  # ... other properties ...
-  depends_on = [snowflake_table.MY_TABLE]
-}
-</code></pre>
-<p><strong>Why:</strong></p>
-<ul>
-<li>Ensures tables are created before views</li>
-<li>Prevents errors during Terraform apply</li>
-<li>Makes dependencies explicit</li>
-</ul>
-<h2 id="secure-views"><a class="header" href="#secure-views">Secure Views</a></h2>
-<p>Secure views hide the underlying SQL query from users who can only view the view definition:</p>
-<pre><code class="language-hcl">resource "snowflake_view" "SECURE_VIEW" {
-  # ... other properties ...
-  is_secure = true
-}
-</code></pre>
-<p><strong>Benefits:</strong></p>
-<ul>
-<li>Protects query logic</li>
-<li>Prevents reverse engineering</li>
-<li>Enhanced security</li>
-</ul>
-<p><strong>Considerations:</strong></p>
-<ul>
-<li>Slightly higher query cost</li>
-<li>Use for sensitive queries</li>
-</ul>
-<h2 id="provider-requirements-6"><a class="header" href="#provider-requirements-6">Provider Requirements</a></h2>
-<p>Views require the <code>snowflake_sysadmin</code> provider because:</p>
-<ul>
-<li>Creating views requires SYSADMIN privileges</li>
-<li>View management is a system administration task</li>
-</ul>
-<h2 id="dependencies-7"><a class="header" href="#dependencies-7">Dependencies</a></h2>
-<h3 id="required-dependencies-2"><a class="header" href="#required-dependencies-2">Required Dependencies</a></h3>
-<p>Views depend on:</p>
-<ul>
-<li><strong>Database</strong>: Must reference an existing database</li>
-<li><strong>Schema</strong>: Must reference an existing schema</li>
-<li><strong>Tables</strong> (usually): Views typically reference tables</li>
-</ul>
-<p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_view" "MY_VIEW" {
-  database = snowflake_database.TEST_DB.name  # References database
-  schema   = snowflake_schema.ADS.name        # References schema
-  # ... SQL statement references tables ...
-  depends_on = [snowflake_table.MY_TABLE]     # Explicit dependency
-}
-</code></pre>
-<h3 id="dependent-resources-3"><a class="header" href="#dependent-resources-3">Dependent Resources</a></h3>
-<p>The following resources depend on views:</p>
-<ul>
-<li>Grants (granted on views)</li>
-<li>Other views (views can reference other views)</li>
-</ul>
-<h2 id="fully-qualified-names-2"><a class="header" href="#fully-qualified-names-2">Fully Qualified Names</a></h2>
-<p>Views have a <code>fully_qualified_name</code> attribute that includes database and schema:</p>
-<pre><code class="language-hcl"># Reference fully qualified name
-object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
-# Results in: "TEST_DB.ADS.AGG_FACEBOOK_ADS"
-</code></pre>
-<p>Use <code>fully_qualified_name</code> when:</p>
-<ul>
-<li>Granting privileges on views</li>
-<li>Referencing views in other resources</li>
-<li>Need fully qualified view name</li>
-</ul>
-<h2 id="granting-access-3"><a class="header" href="#granting-access-3">Granting Access</a></h2>
-<p>Views can be granted to roles for access control:</p>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "VIEW_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_schema_object {
-    object_type = "VIEW"
-    object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
+<p>Views should explicitly declare dependencies on tables they reference using the <code>depends_on</code> field:</p>
+<pre><code class="language-hcl">view_map = {
+  "MY_VIEW" = {
+    # ... other properties ...
+    depends_on = [
+      "module.ALL_TABLES.snowflake_table.TABLES[\"MY_TABLE\"]"
+    ]
   }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
 }
 </code></pre>
-<h3 id="available-privileges-4"><a class="header" href="#available-privileges-4">Available Privileges</a></h3>
+<p><strong>Note:</strong> The <code>depends_on</code> field in the view_map is for documentation purposes. Terraform will automatically detect dependencies from the SQL statement when it references table names.</p>
+<h2 id="available-privileges-4"><a class="header" href="#available-privileges-4">Available Privileges</a></h2>
 <ul>
 <li><strong>SELECT</strong>: Query the view</li>
 <li><strong>REFERENCES</strong>: Reference the view in other objects</li>
@@ -3271,54 +3635,125 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 <li><strong>ALL PRIVILEGES</strong>: All of the above</li>
 </ul>
 <p><strong>Note:</strong> Views are read-only, so INSERT, UPDATE, DELETE privileges are not applicable.</p>
+<h2 id="provider-requirements-6"><a class="header" href="#provider-requirements-6">Provider Requirements</a></h2>
+<p>The module requires the <code>snowflake_sysadmin</code> provider alias because:</p>
+<ul>
+<li>Creating views requires SYSADMIN privileges</li>
+<li>Granting view privileges requires SYSADMIN privileges</li>
+</ul>
+<h2 id="dependencies-7"><a class="header" href="#dependencies-7">Dependencies</a></h2>
+<h3 id="internal-dependencies-6"><a class="header" href="#internal-dependencies-6">Internal Dependencies</a></h3>
+<ul>
+<li><code>snowflake_grant_privileges_to_account_role.VIEW_GRANTS</code> depends on <code>snowflake_view.VIEWS</code></li>
+</ul>
+<h3 id="external-dependencies-6"><a class="header" href="#external-dependencies-6">External Dependencies</a></h3>
+<ul>
+<li><strong>Database Module</strong>: Views must reference existing databases</li>
+<li><strong>Schema Module</strong>: Views must reference existing schemas</li>
+<li><strong>Tables Module</strong> (usually): Views typically reference tables</li>
+<li><strong>Roles Module</strong>: Views reference roles from the roles module for privilege grants</li>
+</ul>
+<h2 id="examples-6"><a class="header" href="#examples-6">Examples</a></h2>
+<h3 id="simple-view"><a class="header" href="#simple-view">Simple View</a></h3>
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  view_map = {
+    "ACTIVE_USERS" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.PUBLIC.name
+      statement     = &lt;&lt;-SQL
+        SELECT *
+        FROM USERS
+        WHERE STATUS = 'ACTIVE'
+          AND LAST_LOGIN &gt;= CURRENT_DATE - 30;
+      SQL
+      comment       = "Currently active users"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="aggregated-view-1"><a class="header" href="#aggregated-view-1">Aggregated View</a></h3>
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  view_map = {
+    "DAILY_SUMMARY" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ANALYTICS.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          DATE_TRUNC('day', EVENT_DATE) AS DAY,
+          COUNT(*) AS EVENT_COUNT,
+          SUM(AMOUNT) AS TOTAL_AMOUNT
+        FROM EVENTS
+        GROUP BY DATE_TRUNC('day', EVENT_DATE);
+      SQL
+      comment       = "Daily aggregated event summary"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="view-with-table-reference"><a class="header" href="#view-with-table-reference">View with Table Reference</a></h3>
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  view_map = {
+    "AGG_FACEBOOK_ADS" = {
+      database_name = module.ALL_DATABASES.DATABASES.TEST_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          AD_DATE, 
+          COUNT(1) AS COUNT_ADS 
+        FROM ${module.ALL_TABLES.TABLES.FACEBOOK_ADS.name}
+        GROUP BY AD_DATE;
+      SQL
+      comment       = "Aggregated view for facebook ads"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
 <h2 id="best-practices-10"><a class="header" href="#best-practices-10">Best Practices</a></h2>
 <ol>
 <li><strong>Descriptive Names</strong>: Use clear, descriptive view names</li>
 <li><strong>Comments</strong>: Always add comments explaining view purpose</li>
-<li><strong>Dependencies</strong>: Explicitly declare dependencies on tables</li>
 <li><strong>SQL Formatting</strong>: Use heredoc syntax for multi-line SQL</li>
-<li><strong>Secure Views</strong>: Use secure views for sensitive queries</li>
 <li><strong>Access Control</strong>: Grant SELECT to roles that need access</li>
-<li><strong>Performance</strong>: Consider materialized views for frequently accessed data</li>
-<li><strong>Documentation</strong>: Document complex SQL logic in comments</li>
+<li><strong>Minimal Privileges</strong>: Grant only necessary privileges</li>
+<li><strong>Database/Schema Reference</strong>: Always reference databases and schemas from modules</li>
+<li><strong>Table References</strong>: Reference tables using module outputs when possible</li>
 </ol>
-<h2 id="common-patterns"><a class="header" href="#common-patterns">Common Patterns</a></h2>
-<h3 id="aggregation-views"><a class="header" href="#aggregation-views">Aggregation Views</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "DAILY_SUMMARY" {
-  database  = snowflake_database.MY_DB.name
-  schema    = snowflake_schema.ANALYTICS.name
-  name      = "DAILY_SUMMARY"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      DATE_TRUNC('day', EVENT_DATE) AS DAY,
-      COUNT(*) AS EVENT_COUNT,
-      SUM(AMOUNT) AS TOTAL_AMOUNT
-    FROM EVENTS
-    GROUP BY DATE_TRUNC('day', EVENT_DATE);
-  SQL
-  comment   = "Daily aggregated event summary"
-  depends_on = [snowflake_table.EVENTS]
-  
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="filtered-views"><a class="header" href="#filtered-views">Filtered Views</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "ACTIVE_USERS" {
-  database  = snowflake_database.MY_DB.name
-  schema    = snowflake_schema.PUBLIC.name
-  name      = "ACTIVE_USERS"
-  statement = &lt;&lt;-SQL
-    SELECT *
-    FROM USERS
-    WHERE STATUS = 'ACTIVE'
-      AND LAST_LOGIN &gt;= CURRENT_DATE - 30;
-  SQL
-  comment   = "Currently active users"
-  depends_on = [snowflake_table.USERS]
-  
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
 <h2 id="troubleshooting-9"><a class="header" href="#troubleshooting-9">Troubleshooting</a></h2>
 <h3 id="view-already-exists"><a class="header" href="#view-already-exists">View Already Exists</a></h3>
 <p><strong>Error:</strong></p>
@@ -3326,9 +3761,8 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Import existing view: <code>terraform import snowflake_view.AGG_FACEBOOK_ADS "TEST_DB.ADS.AGG_FACEBOOK_ADS"</code></li>
+<li>Import existing view: <code>terraform import module.ALL_VIEWS.snowflake_view.VIEWS["VIEW_NAME"] "DB.SCHEMA.VIEW"</code></li>
 <li>Or remove view from Snowflake manually</li>
-<li>Or use <code>or_replace = true</code> to replace existing view</li>
 <li>Or use a different view name</li>
 </ul>
 <h3 id="table-not-found"><a class="header" href="#table-not-found">Table Not Found</a></h3>
@@ -3338,9 +3772,9 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 <p><strong>Solution:</strong></p>
 <ul>
 <li>Ensure tables are created before views</li>
-<li>Add explicit <code>depends_on</code> declarations</li>
 <li>Verify table names in SQL statement</li>
 <li>Check that tables exist in Snowflake</li>
+<li>Reference tables using module outputs: <code>module.ALL_TABLES.TABLES.TABLE_NAME.name</code></li>
 </ul>
 <h3 id="invalid-sql-statement"><a class="header" href="#invalid-sql-statement">Invalid SQL Statement</a></h3>
 <p><strong>Error:</strong></p>
@@ -3366,72 +3800,55 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 </ul>
 <h2 id="related-documentation-6"><a class="header" href="#related-documentation-6">Related Documentation</a></h2>
 <ul>
-<li><a href="resources/tables.html">Tables</a> - Views typically reference tables</li>
-<li><a href="resources/schemas.html">Schemas</a> - Parent containers for views</li>
-<li><a href="resources/grants.html">Grants and Privileges</a> - Granting view access</li>
+<li><a href="modules/schema-module.html">Schema Module</a> - Creates parent schemas</li>
+<li><a href="modules/database-module.html">Database Module</a> - Creates parent databases</li>
+<li><a href="modules/tables-module.html">Tables Module</a> - Creates tables that views may reference</li>
+<li><a href="modules/roles-module.html">Roles Module</a> - Creates roles that receive view privileges</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="grants-and-privileges"><a class="header" href="#grants-and-privileges">Grants and Privileges</a></h1>
 <p>This document explains how privileges are granted to roles on various Snowflake objects in the Terraform configuration.</p>
 <h2 id="overview-7"><a class="header" href="#overview-7">Overview</a></h2>
-<p>Grants in Snowflake control access to objects by assigning privileges to roles. The configuration uses <code>snowflake_grant_privileges_to_account_role</code> resources to grant privileges on databases, schemas, tables, views, and warehouses.</p>
-<h2 id="grant-resource"><a class="header" href="#grant-resource">Grant Resource</a></h2>
-<h3 id="basic-grant-structure"><a class="header" href="#basic-grant-structure">Basic Grant Structure</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "GRANT_NAME" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
-  
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.TEST_DB.name
-  }
-  
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h2 id="grant-properties"><a class="header" href="#grant-properties">Grant Properties</a></h2>
-<h3 id="required-properties-4"><a class="header" href="#required-properties-4">Required Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>List of privileges to grant</td></tr>
-<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Name of the role receiving privileges</td></tr>
-</tbody></table>
-</div>
-<h3 id="object-specification"><a class="header" href="#object-specification">Object Specification</a></h3>
-<p>One of the following must be specified:</p>
-<h4 id="account-object"><a class="header" href="#account-object">Account Object</a></h4>
-<pre><code class="language-hcl">on_account_object {
-  object_type = "DATABASE" | "WAREHOUSE" | "INTEGRATION" | ...
-  object_name = "OBJECT_NAME"
-}
-</code></pre>
-<h4 id="schema-object"><a class="header" href="#schema-object">Schema Object</a></h4>
-<pre><code class="language-hcl">on_schema {
-  schema_name = "DATABASE.SCHEMA"  # or fully_qualified_name
-}
-</code></pre>
-<h4 id="schema-object-specific-object"><a class="header" href="#schema-object-specific-object">Schema Object (Specific Object)</a></h4>
-<pre><code class="language-hcl">on_schema_object {
-  object_type = "TABLE" | "VIEW" | "FUNCTION" | ...
-  object_name = "DATABASE.SCHEMA.OBJECT"  # or fully_qualified_name
-}
-</code></pre>
-<h3 id="optional-properties-4"><a class="header" href="#optional-properties-4">Optional Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td><code>false</code></td><td>Whether grant includes grant option</td></tr>
-<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
-</tbody></table>
-</div>
+<p>Grants in Snowflake control access to objects by assigning privileges to roles. In this Terraform configuration, <strong>privilege grants are automatically managed within each module</strong>. Each module (database, schema, tables, views, warehouse) handles its own privilege grants, ensuring consistent access control.</p>
+<h2 id="automatic-grant-management-1"><a class="header" href="#automatic-grant-management-1">Automatic Grant Management</a></h2>
+<h3 id="module-based-grants"><a class="header" href="#module-based-grants">Module-Based Grants</a></h3>
+<p>All modules that create objects automatically handle privilege grants:</p>
+<ul>
+<li><strong>Database Module</strong>: Grants database privileges via <code>role_privileges</code> in <code>database_map</code></li>
+<li><strong>Schema Module</strong>: Grants schema privileges via <code>role_privileges</code> in <code>schema_map</code></li>
+<li><strong>Tables Module</strong>: Grants table privileges via <code>role_privileges</code> in <code>table_map</code></li>
+<li><strong>Views Module</strong>: Grants view privileges via <code>role_privileges</code> in <code>view_map</code></li>
+<li><strong>Warehouse Module</strong>: Grants warehouse privileges via <code>role_privileges</code> in <code>warehouse_map</code></li>
+</ul>
+<h3 id="benefits"><a class="header" href="#benefits">Benefits</a></h3>
+<ul>
+<li><strong>Consistency</strong>: Grants are managed alongside objects</li>
+<li><strong>Simplicity</strong>: No need for separate grant resources</li>
+<li><strong>Maintainability</strong>: Easier to understand and modify</li>
+<li><strong>Safety</strong>: Grants are always in sync with objects</li>
+</ul>
 <h2 id="database-grants"><a class="header" href="#database-grants">Database Grants</a></h2>
-<h3 id="grant-usage-on-database"><a class="header" href="#grant-usage-on-database">Grant USAGE on Database</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "MARKETING_TEST_DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.TEST_DB.name
+<h3 id="configuration-1"><a class="header" href="#configuration-1">Configuration</a></h3>
+<p>Database privileges are configured within the database module:</p>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    "MY_DB" = {
+      comment                     = "My database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+          privileges        = ["USAGE", "CREATE SCHEMA"]
+        }
+      ]
+      with_grant_option = false
+    }
   }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="available-database-privileges"><a class="header" href="#available-database-privileges">Available Database Privileges</a></h3>
@@ -3444,15 +3861,24 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 <li><strong>ALL PRIVILEGES</strong>: All of the above</li>
 </ul>
 <h2 id="schema-grants"><a class="header" href="#schema-grants">Schema Grants</a></h2>
-<h3 id="grant-usage-on-schema"><a class="header" href="#grant-usage-on-schema">Grant USAGE on Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "MARKETING_ADS_SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
-  on_schema {
-    schema_name = snowflake_schema.ADS.fully_qualified_name
+<h3 id="configuration-2"><a class="header" href="#configuration-2">Configuration</a></h3>
+<p>Schema privileges are configured within the schema module:</p>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    "MY_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.MY_DB.name
+      with_managed_access = false
+      is_transient        = false
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
   }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="available-schema-privileges"><a class="header" href="#available-schema-privileges">Available Schema Privileges</a></h3>
@@ -3474,16 +3900,30 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 <li><strong>ALL PRIVILEGES</strong>: All of the above</li>
 </ul>
 <h2 id="table-grants"><a class="header" href="#table-grants">Table Grants</a></h2>
-<h3 id="grant-select-on-table"><a class="header" href="#grant-select-on-table">Grant SELECT on Table</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "FACEBOOK_ADS_TABLE_SELECT_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+<h3 id="configuration-3"><a class="header" href="#configuration-3">Configuration</a></h3>
+<p>Table privileges are configured within the tables module:</p>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  table_map = {
+    "MY_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+      comment       = "My table"
+      columns = [ ... ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+          privileges        = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+        }
+      ]
+      with_grant_option = false
+    }
   }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="available-table-privileges"><a class="header" href="#available-table-privileges">Available Table Privileges</a></h3>
@@ -3497,29 +3937,27 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 <li><strong>OWNERSHIP</strong>: Full ownership of the table</li>
 <li><strong>ALL PRIVILEGES</strong>: All of the above</li>
 </ul>
-<h3 id="grant-multiple-privileges"><a class="header" href="#grant-multiple-privileges">Grant Multiple Privileges</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_FULL_GRANT" {
-  privileges        = ["SELECT", "INSERT", "UPDATE", "DELETE"]
-  account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.MY_TABLE.fully_qualified_name
-  }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
-}
-</code></pre>
 <h2 id="view-grants"><a class="header" href="#view-grants">View Grants</a></h2>
-<h3 id="grant-select-on-view"><a class="header" href="#grant-select-on-view">Grant SELECT on View</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "AGG_FACEBOOK_ADS_VIEW_SELECT_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
-  on_schema_object {
-    object_type = "VIEW"
-    object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
+<h3 id="configuration-4"><a class="header" href="#configuration-4">Configuration</a></h3>
+<p>View privileges are configured within the views module:</p>
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
+  
+  view_map = {
+    "MY_VIEW" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+      statement     = "SELECT * FROM MY_TABLE"
+      comment       = "My view"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+      with_grant_option = false
+    }
   }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="available-view-privileges"><a class="header" href="#available-view-privileges">Available View Privileges</a></h3>
@@ -3531,17 +3969,23 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 </ul>
 <p><strong>Note:</strong> Views are read-only, so INSERT, UPDATE, DELETE privileges are not applicable.</p>
 <h2 id="warehouse-grants"><a class="header" href="#warehouse-grants">Warehouse Grants</a></h2>
-<p>Warehouse privileges are typically managed within the warehouse module, but can also be granted directly:</p>
-<h3 id="grant-usage-on-warehouse"><a class="header" href="#grant-usage-on-warehouse">Grant USAGE on Warehouse</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "WAREHOUSE_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_account_object {
-    object_type = "WAREHOUSE"
-    object_name = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
+<h3 id="configuration-5"><a class="header" href="#configuration-5">Configuration</a></h3>
+<p>Warehouse privileges are configured within the warehouse module:</p>
+<pre><code class="language-hcl">module "ALL_WAREHOUSES" {
+  source = "./modules/snowflake/warehouse"
+  
+  warehouse_map = {
+    "MY_WH" = {
+      warehouse_type       = "STANDARD"
+      warehouse_generation = "2"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
   }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="available-warehouse-privileges"><a class="header" href="#available-warehouse-privileges">Available Warehouse Privileges</a></h3>
@@ -3554,15 +3998,11 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 </ul>
 <h2 id="grant-option"><a class="header" href="#grant-option">Grant Option</a></h2>
 <p>The <code>with_grant_option</code> property allows the grantee to grant the same privileges to other roles:</p>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "GRANT_WITH_OPTION" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.MANAGER.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+<pre><code class="language-hcl">database_map = {
+  "MY_DB" = {
+    role_privileges = [ ... ]
+    with_grant_option = true  # Grantees can grant to others
   }
-  with_grant_option = true  # Manager can grant SELECT to others
-  provider          = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <p><strong>Use Cases:</strong></p>
@@ -3575,48 +4015,8 @@ object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
 <ul>
 <li>Use carefully as it allows privilege escalation</li>
 <li>Typically used for administrative roles</li>
+<li>Default is <code>false</code> for security</li>
 </ul>
-<h2 id="fully-qualified-names-3"><a class="header" href="#fully-qualified-names-3">Fully Qualified Names</a></h2>
-<p>Use <code>fully_qualified_name</code> attributes for schema and object references:</p>
-<pre><code class="language-hcl"># Schema grant
-on_schema {
-  schema_name = snowflake_schema.ADS.fully_qualified_name
-  # Results in: "TEST_DB.ADS"
-}
-
-# Table grant
-on_schema_object {
-  object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
-  # Results in: "TEST_DB.ADS.FACEBOOK_ADS"
-}
-
-# View grant
-on_schema_object {
-  object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
-  # Results in: "TEST_DB.ADS.AGG_FACEBOOK_ADS"
-}
-</code></pre>
-<h2 id="provider-requirements-7"><a class="header" href="#provider-requirements-7">Provider Requirements</a></h2>
-<p>Grants require the <code>snowflake_sysadmin</code> provider because:</p>
-<ul>
-<li>Granting privileges requires SYSADMIN privileges</li>
-<li>Privilege management is a system administration task</li>
-</ul>
-<h2 id="dependencies-8"><a class="header" href="#dependencies-8">Dependencies</a></h2>
-<h3 id="required-dependencies-3"><a class="header" href="#required-dependencies-3">Required Dependencies</a></h3>
-<p>Grants depend on:</p>
-<ul>
-<li><strong>Roles</strong>: Roles must exist before granting</li>
-<li><strong>Objects</strong>: Objects (databases, schemas, tables, views, warehouses) must exist before granting</li>
-</ul>
-<p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
-  # ... grant configuration ...
-  # Implicitly depends on:
-  # - module.ALL_ROLES.ROLES.MARKETING (role must exist)
-  # - snowflake_table.FACEBOOK_ADS (table must exist)
-}
-</code></pre>
 <h2 id="privilege-hierarchy"><a class="header" href="#privilege-hierarchy">Privilege Hierarchy</a></h2>
 <p>Privileges follow a hierarchy in Snowflake:</p>
 <ol>
@@ -3624,37 +4024,50 @@ on_schema_object {
 <li><strong>Schema USAGE</strong> → Required to access tables/views</li>
 <li><strong>Table/View SELECT</strong> → Required to query data</li>
 </ol>
-<p><strong>Example:</strong></p>
-<pre><code class="language-hcl"># Step 1: Grant database access
-resource "snowflake_grant_privileges_to_account_role" "DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.TEST_DB.name
+<p><strong>Example Complete Access Chain:</strong></p>
+<pre><code class="language-hcl"># 1. Database access
+module "ALL_DATABASES" {
+  database_map = {
+    "MY_DB" = {
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
   }
-  provider = snowflake.snowflake_sysadmin
 }
 
-# Step 2: Grant schema access
-resource "snowflake_grant_privileges_to_account_role" "SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_schema {
-    schema_name = snowflake_schema.ADS.fully_qualified_name
+# 2. Schema access
+module "ALL_SCHEMAS" {
+  schema_map = {
+    "MY_SCHEMA" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
   }
-  provider = snowflake.snowflake_sysadmin
 }
 
-# Step 3: Grant table access
-resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+# 3. Table access
+module "ALL_TABLES" {
+  table_map = {
+    "MY_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h2 id="best-practices-11"><a class="header" href="#best-practices-11">Best Practices</a></h2>
@@ -3667,70 +4080,33 @@ resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
 <li><strong>Role-Based</strong>: Grant to roles, not individual users</li>
 <li><strong>Review Regularly</strong>: Regularly review and audit grants</li>
 </ol>
-<h2 id="common-patterns-1"><a class="header" href="#common-patterns-1">Common Patterns</a></h2>
+<h2 id="common-patterns"><a class="header" href="#common-patterns">Common Patterns</a></h2>
 <h3 id="read-only-access"><a class="header" href="#read-only-access">Read-Only Access</a></h3>
-<pre><code class="language-hcl"># Grant read-only access to a role
-resource "snowflake_grant_privileges_to_account_role" "READONLY_DB" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.MY_DB.name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-resource "snowflake_grant_privileges_to_account_role" "READONLY_SCHEMA" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_schema {
-    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-resource "snowflake_grant_privileges_to_account_role" "READONLY_TABLE" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.MY_TABLE.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
+<pre><code class="language-hcl"># Database: USAGE
+# Schema: USAGE
+# Table: SELECT
+# View: SELECT
+</code></pre>
+<h3 id="read-write-access"><a class="header" href="#read-write-access">Read-Write Access</a></h3>
+<pre><code class="language-hcl"># Database: USAGE
+# Schema: USAGE
+# Table: SELECT, INSERT, UPDATE, DELETE
 </code></pre>
 <h3 id="full-access"><a class="header" href="#full-access">Full Access</a></h3>
-<pre><code class="language-hcl"># Grant full access to a role
-resource "snowflake_grant_privileges_to_account_role" "FULL_ACCESS" {
-  privileges        = ["ALL PRIVILEGES"]
-  account_role_name = module.ALL_ROLES.ROLES.ADMIN.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.MY_TABLE.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
+<pre><code class="language-hcl"># Database: ALL PRIVILEGES
+# Schema: ALL PRIVILEGES
+# Table: ALL PRIVILEGES
 </code></pre>
 <h2 id="troubleshooting-10"><a class="header" href="#troubleshooting-10">Troubleshooting</a></h2>
-<h3 id="role-not-found-1"><a class="header" href="#role-not-found-1">Role Not Found</a></h3>
+<h3 id="role-not-found-2"><a class="header" href="#role-not-found-2">Role Not Found</a></h3>
 <p><strong>Error:</strong></p>
 <pre><code>Error: Role does not exist
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Ensure roles are created before granting</li>
-<li>Verify role name is correct</li>
-<li>Check that role exists in Snowflake</li>
-</ul>
-<h3 id="object-not-found"><a class="header" href="#object-not-found">Object Not Found</a></h3>
-<p><strong>Error:</strong></p>
-<pre><code>Error: Object does not exist
-</code></pre>
-<p><strong>Solution:</strong></p>
-<ul>
-<li>Ensure objects are created before granting</li>
-<li>Verify object names are correct</li>
-<li>Check that objects exist in Snowflake</li>
+<li>Ensure roles are created before objects</li>
+<li>Verify role names in <code>role_privileges</code> match module outputs</li>
+<li>Check that roles module is applied before other modules</li>
 </ul>
 <h3 id="insufficient-privileges-8"><a class="header" href="#insufficient-privileges-8">Insufficient Privileges</a></h3>
 <p><strong>Error:</strong></p>
@@ -3738,9 +4114,9 @@ resource "snowflake_grant_privileges_to_account_role" "FULL_ACCESS" {
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Ensure provider uses SYSADMIN role</li>
-<li>Verify user can assume SYSADMIN role</li>
-<li>Check that user has necessary privileges to grant</li>
+<li>Ensure provider uses appropriate role (SYSADMIN for objects, SECURITYADMIN for roles/users)</li>
+<li>Verify user can assume required roles</li>
+<li>Check that user has necessary privileges</li>
 </ul>
 <h3 id="missing-usage-privilege"><a class="header" href="#missing-usage-privilege">Missing USAGE Privilege</a></h3>
 <p><strong>Error:</strong></p>
@@ -3755,10 +4131,11 @@ resource "snowflake_grant_privileges_to_account_role" "FULL_ACCESS" {
 <h2 id="related-documentation-7"><a class="header" href="#related-documentation-7">Related Documentation</a></h2>
 <ul>
 <li><a href="resources/../modules/roles-module.html">Roles Module</a> - Creates roles that receive grants</li>
-<li><a href="resources/databases.html">Databases</a> - Objects that can be granted</li>
-<li><a href="resources/schemas.html">Schemas</a> - Objects that can be granted</li>
-<li><a href="resources/tables.html">Tables</a> - Objects that can be granted</li>
-<li><a href="resources/views.html">Views</a> - Objects that can be granted</li>
+<li><a href="resources/../modules/database-module.html">Database Module</a> - Database grants</li>
+<li><a href="resources/../modules/schema-module.html">Schema Module</a> - Schema grants</li>
+<li><a href="resources/../modules/tables-module.html">Tables Module</a> - Table grants</li>
+<li><a href="resources/../modules/views-module.html">Views Module</a> - View grants</li>
+<li><a href="resources/../modules/warehouse-module.html">Warehouse Module</a> - Warehouse grants</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="basic-usage-1"><a class="header" href="#basic-usage-1">Basic Usage</a></h1>
 <p>This guide provides practical examples of common operations with the Terraform Snowflake infrastructure.</p>
@@ -3861,13 +4238,28 @@ terraform apply
 <h3 id="4-adding-a-new-database"><a class="header" href="#4-adding-a-new-database">4. Adding a New Database</a></h3>
 <p>To add a new database:</p>
 <ol>
-<li><strong>Edit <code>main.tf</code></strong> and add the database resource:</li>
+<li><strong>Edit <code>main.tf</code></strong> and add the database to the <code>database_map</code>:</li>
 </ol>
-<pre><code class="language-hcl">resource "snowflake_database" "NEW_DB" {
-  name                        = "NEW_DB"
-  comment                     = "New database"
-  data_retention_time_in_days = 1
-  provider                    = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    # ... existing databases ...
+    "NEW_DB" = {
+      comment                     = "New database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <ol start="2">
@@ -3876,29 +4268,78 @@ terraform apply
 <pre><code class="language-bash">terraform plan
 terraform apply
 </code></pre>
-<h3 id="5-adding-a-new-table"><a class="header" href="#5-adding-a-new-table">5. Adding a New Table</a></h3>
+<h3 id="5-adding-a-new-schema"><a class="header" href="#5-adding-a-new-schema">5. Adding a New Schema</a></h3>
+<p>To add a new schema:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add the schema to the <code>schema_map</code>:</li>
+</ol>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    # ... existing schemas ...
+    "NEW_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.NEW_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "New schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan and apply</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+terraform apply
+</code></pre>
+<h3 id="6-adding-a-new-table"><a class="header" href="#6-adding-a-new-table">6. Adding a New Table</a></h3>
 <p>To add a new table:</p>
 <ol>
-<li><strong>Edit <code>main.tf</code></strong> and add the table resource:</li>
+<li><strong>Edit <code>main.tf</code></strong> and add the table to the <code>table_map</code>:</li>
 </ol>
-<pre><code class="language-hcl">resource "snowflake_table" "NEW_TABLE" {
-  database = snowflake_database.NEW_DB.name
-  schema   = snowflake_schema.PUBLIC.name
-  name     = "NEW_TABLE"
-  comment  = "New table"
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
   }
   
-  column {
-    name = "NAME"
-    type = "VARCHAR(255)"
+  table_map = {
+    # ... existing tables ...
+    "NEW_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.NEW_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.NEW_SCHEMA.name
+      comment       = "New table"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "NAME"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <ol start="2">
@@ -3907,49 +4348,7 @@ terraform apply
 <pre><code class="language-bash">terraform plan
 terraform apply
 </code></pre>
-<h3 id="6-granting-access-to-a-role"><a class="header" href="#6-granting-access-to-a-role">6. Granting Access to a Role</a></h3>
-<p>To grant access to a role:</p>
-<ol>
-<li><strong>Edit <code>main.tf</code></strong> and add grant resources:</li>
-</ol>
-<pre><code class="language-hcl"># Grant database access
-resource "snowflake_grant_privileges_to_account_role" "ROLE_DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.NEW_DB.name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Grant schema access
-resource "snowflake_grant_privileges_to_account_role" "ROLE_SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
-  on_schema {
-    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Grant table access
-resource "snowflake_grant_privileges_to_account_role" "ROLE_TABLE_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.NEW_TABLE.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<ol start="2">
-<li><strong>Plan and apply</strong>:</li>
-</ol>
-<pre><code class="language-bash">terraform plan
-terraform apply
-</code></pre>
+<p><strong>Note:</strong> Privilege grants are automatically handled by the module - no separate grant resources needed!</p>
 <h2 id="terraform-commands"><a class="header" href="#terraform-commands">Terraform Commands</a></h2>
 <h3 id="initialize"><a class="header" href="#initialize">Initialize</a></h3>
 <pre><code class="language-bash">terraform init
@@ -4017,7 +4416,7 @@ default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
 <p>View specific output:</p>
 <pre><code class="language-bash">terraform output ALL_ROLES
 </code></pre>
-<h2 id="common-patterns-2"><a class="header" href="#common-patterns-2">Common Patterns</a></h2>
+<h2 id="common-patterns-1"><a class="header" href="#common-patterns-1">Common Patterns</a></h2>
 <h3 id="pattern-1-complete-user-setup"><a class="header" href="#pattern-1-complete-user-setup">Pattern 1: Complete User Setup</a></h3>
 <p>Create a user with role, warehouse, and database access:</p>
 <pre><code class="language-hcl"># 1. Role (in role_map)
@@ -4050,49 +4449,57 @@ default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
   roles_to_assign  = [module.ALL_ROLES.ROLES.ANALYST.name]
 }
 
-# 4. Database grant
-resource "snowflake_grant_privileges_to_account_role" "ANALYST_DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.MY_DB.name
-  }
-  provider = snowflake.snowflake_sysadmin
+# 4. Database with automatic grant (in database_map)
+"MY_DB" = {
+  comment                     = "My database"
+  data_retention_time_in_days = 1
+  role_privileges = [
+    {
+      account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+      privileges        = ["USAGE"]
+    }
+  ]
 }
 </code></pre>
 <h3 id="pattern-2-read-only-access"><a class="header" href="#pattern-2-read-only-access">Pattern 2: Read-Only Access</a></h3>
-<p>Grant read-only access to a role:</p>
-<pre><code class="language-hcl"># Database USAGE
-resource "snowflake_grant_privileges_to_account_role" "READONLY_DB" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.MY_DB.name
+<p>Grant read-only access to a role (all grants handled automatically in modules):</p>
+<pre><code class="language-hcl"># Database with USAGE grant
+database_map = {
+  "MY_DB" = {
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+        privileges        = ["USAGE"]
+      }
+    ]
   }
-  provider = snowflake.snowflake_sysadmin
 }
 
-# Schema USAGE
-resource "snowflake_grant_privileges_to_account_role" "READONLY_SCHEMA" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_schema {
-    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
+# Schema with USAGE grant
+schema_map = {
+  "PUBLIC" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+        privileges        = ["USAGE"]
+      }
+    ]
   }
-  provider = snowflake.snowflake_sysadmin
 }
 
-# Table SELECT (read-only)
-resource "snowflake_grant_privileges_to_account_role" "READONLY_TABLE" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+# Table with SELECT grant (read-only)
+table_map = {
+  "MY_TABLE" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    schema_name   = module.ALL_SCHEMAS.SCHEMAS.PUBLIC.name
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+        privileges        = ["SELECT"]
+      }
+    ]
   }
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h2 id="troubleshooting-common-issues"><a class="header" href="#troubleshooting-common-issues">Troubleshooting Common Issues</a></h2>
@@ -4330,7 +4737,7 @@ snowflake_warehouse    = "PROD_WH"
 }
 </code></pre>
 <h2 id="customizing-databases"><a class="header" href="#customizing-databases">Customizing Databases</a></h2>
-<h3 id="database-with-custom-retention-1"><a class="header" href="#database-with-custom-retention-1">Database with Custom Retention</a></h3>
+<h3 id="database-with-custom-retention"><a class="header" href="#database-with-custom-retention">Database with Custom Retention</a></h3>
 <pre><code class="language-hcl">resource "snowflake_database" "CUSTOM_DB" {
   name                        = "CUSTOM_DB"
   comment                     = "Custom database with 30-day retention"
@@ -4348,7 +4755,7 @@ snowflake_warehouse    = "PROD_WH"
   provider            = snowflake.snowflake_sysadmin
 }
 </code></pre>
-<h3 id="transient-schema-1"><a class="header" href="#transient-schema-1">Transient Schema</a></h3>
+<h3 id="transient-schema"><a class="header" href="#transient-schema">Transient Schema</a></h3>
 <pre><code class="language-hcl">resource "snowflake_schema" "TEMP_SCHEMA" {
   name         = "TEMP_SCHEMA"
   database     = snowflake_database.CUSTOM_DB.name
@@ -4506,122 +4913,140 @@ terraform plan
 </code></pre>
 <h2 id="adding-a-new-database"><a class="header" href="#adding-a-new-database">Adding a New Database</a></h2>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "NEW_DATABASE" {
-  name                        = "NEW_DATABASE"
-  comment                     = "Description of the database"
-  data_retention_time_in_days = 1
-  provider                    = snowflake.snowflake_sysadmin
+<p>Add to the <code>database_map</code> in the <code>ALL_DATABASES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "NEW_DATABASE" = {
+      comment                     = "Description of the database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="considerations"><a class="header" href="#considerations">Considerations</a></h3>
 <ul>
 <li>Database names must be unique</li>
 <li>Choose appropriate retention period</li>
-<li>Consider granting USAGE to roles</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
 <h2 id="adding-a-new-schema"><a class="header" href="#adding-a-new-schema">Adding a New Schema</a></h2>
 <h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "NEW_SCHEMA" {
-  name     = "NEW_SCHEMA"
-  database = snowflake_database.NEW_DATABASE.name
-  comment  = "Description of the schema"
-  provider = snowflake.snowflake_sysadmin
+<p>Add to the <code>schema_map</code> in the <code>ALL_SCHEMAS</code> module:</p>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "NEW_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.NEW_DATABASE.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "Description of the schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="considerations-1"><a class="header" href="#considerations-1">Considerations</a></h3>
 <ul>
-<li>Schema must reference an existing database</li>
+<li>Schema must reference an existing database (use module output)</li>
 <li>Consider <code>with_managed_access</code> for security</li>
 <li>Consider <code>is_transient</code> for temporary data</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
 <h2 id="adding-a-new-table"><a class="header" href="#adding-a-new-table">Adding a New Table</a></h2>
 <h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "NEW_TABLE" {
-  database = snowflake_database.NEW_DATABASE.name
-  schema   = snowflake_schema.NEW_SCHEMA.name
-  name     = "NEW_TABLE"
-  comment  = "Description of the table"
+<p>Add to the <code>table_map</code> in the <code>ALL_TABLES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
+  table_map = {
+    # ... existing tables ...
+    "NEW_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.NEW_DATABASE.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.NEW_SCHEMA.name
+      comment       = "Description of the table"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "NAME"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  
-  column {
-    name = "NAME"
-    type = "VARCHAR(255)"
-  }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="considerations-2"><a class="header" href="#considerations-2">Considerations</a></h3>
 <ul>
-<li>Table must reference existing database and schema</li>
+<li>Table must reference existing database and schema (use module outputs)</li>
 <li>Choose appropriate data types</li>
 <li>Consider nullable constraints</li>
 <li>Add comments for documentation</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
 <h2 id="adding-a-new-view"><a class="header" href="#adding-a-new-view">Adding a New View</a></h2>
 <h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "NEW_VIEW" {
-  database  = snowflake_database.NEW_DATABASE.name
-  schema    = snowflake_schema.NEW_SCHEMA.name
-  name      = "NEW_VIEW"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      ID,
-      NAME
-    FROM NEW_TABLE
-    WHERE ACTIVE = TRUE;
-  SQL
-  comment   = "Description of the view"
-  depends_on = [snowflake_table.NEW_TABLE]
+<p>Add to the <code>view_map</code> in the <code>ALL_VIEWS</code> module:</p>
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
   
-  provider = snowflake.snowflake_sysadmin
+  view_map = {
+    # ... existing views ...
+    "NEW_VIEW" = {
+      database_name = module.ALL_DATABASES.DATABASES.NEW_DATABASE.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.NEW_SCHEMA.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          ID,
+          NAME
+        FROM ${module.ALL_TABLES.TABLES.NEW_TABLE.name}
+        WHERE ACTIVE = TRUE;
+      SQL
+      comment       = "Description of the view"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="considerations-3"><a class="header" href="#considerations-3">Considerations</a></h3>
 <ul>
-<li>View must reference existing database and schema</li>
+<li>View must reference existing database and schema (use module outputs)</li>
 <li>SQL statement must be valid</li>
-<li>Add <code>depends_on</code> for referenced tables</li>
-<li>Consider <code>is_secure</code> for sensitive queries</li>
+<li>Reference tables using module outputs when possible</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
-<h2 id="adding-grants"><a class="header" href="#adding-grants">Adding Grants</a></h2>
-<h3 id="database-grant"><a class="header" href="#database-grant">Database Grant</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.NEW_DATABASE.name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="schema-grant"><a class="header" href="#schema-grant">Schema Grant</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
-  on_schema {
-    schema_name = snowflake_schema.NEW_SCHEMA.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="table-grant"><a class="header" href="#table-grant">Table Grant</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.NEW_TABLE.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
+<h2 id="note-on-grants"><a class="header" href="#note-on-grants">Note on Grants</a></h2>
+<p><strong>All grants are now handled automatically within modules!</strong> You no longer need separate grant resources. Simply include <code>role_privileges</code> in the module configuration for databases, schemas, tables, views, and warehouses.</p>
 <h2 id="adding-resources-to-modules"><a class="header" href="#adding-resources-to-modules">Adding Resources to Modules</a></h2>
 <h3 id="adding-a-role"><a class="header" href="#adding-a-role">Adding a Role</a></h3>
 <p>Edit the <code>role_map</code> in the <code>ALL_ROLES</code> module:</p>
@@ -4676,126 +5101,123 @@ terraform plan
 }
 </code></pre>
 <h2 id="complete-example-adding-a-new-data-domain"><a class="header" href="#complete-example-adding-a-new-data-domain">Complete Example: Adding a New Data Domain</a></h2>
-<p>This example shows adding a complete data domain (database, schema, table, view, and grants):</p>
+<p>This example shows adding a complete data domain using modules (database, schema, table, view, with automatic grants):</p>
 <h3 id="1-add-database"><a class="header" href="#1-add-database">1. Add Database</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "SALES_DB" {
-  name                        = "SALES_DB"
-  comment                     = "Sales database"
-  data_retention_time_in_days = 30
-  provider                    = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "SALES_DB" = {
+      comment                     = "Sales database"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="2-add-schema"><a class="header" href="#2-add-schema">2. Add Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "ORDERS" {
-  name     = "ORDERS"
-  database = snowflake_database.SALES_DB.name
-  comment  = "Orders schema"
-  provider = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "ORDERS" = {
+      database_name       = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "Orders schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="3-add-table"><a class="header" href="#3-add-table">3. Add Table</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "ORDER_ITEMS" {
-  database = snowflake_database.SALES_DB.name
-  schema   = snowflake_schema.ORDERS.name
-  name     = "ORDER_ITEMS"
-  comment  = "Order items table"
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ORDER_ITEM_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
+  table_map = {
+    # ... existing tables ...
+    "ORDER_ITEMS" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ORDERS.name
+      comment       = "Order items table"
+      columns = [
+        {
+          name     = "ORDER_ITEM_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "ORDER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "PRODUCT_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "QUANTITY"
+          type     = "NUMBER(10,0)"
+          nullable = false
+        },
+        {
+          name     = "PRICE"
+          type     = "NUMBER(10,2)"
+          nullable = false
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT", "INSERT", "UPDATE"]
+        }
+      ]
+    }
   }
-  
-  column {
-    name     = "ORDER_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "PRODUCT_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "QUANTITY"
-    type     = "NUMBER(10,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "PRICE"
-    type     = "NUMBER(10,2)"
-    nullable = false
-  }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="4-add-view"><a class="header" href="#4-add-view">4. Add View</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "ORDER_SUMMARY" {
-  database  = snowflake_database.SALES_DB.name
-  schema    = snowflake_schema.ORDERS.name
-  name      = "ORDER_SUMMARY"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      ORDER_ID,
-      COUNT(*) AS ITEM_COUNT,
-      SUM(PRICE * QUANTITY) AS TOTAL_AMOUNT
-    FROM ORDER_ITEMS
-    GROUP BY ORDER_ID;
-  SQL
-  comment   = "Order summary view"
-  depends_on = [snowflake_table.ORDER_ITEMS]
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
   
-  provider = snowflake.snowflake_sysadmin
+  view_map = {
+    # ... existing views ...
+    "ORDER_SUMMARY" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ORDERS.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          ORDER_ID,
+          COUNT(*) AS ITEM_COUNT,
+          SUM(PRICE * QUANTITY) AS TOTAL_AMOUNT
+        FROM ${module.ALL_TABLES.TABLES.ORDER_ITEMS.name}
+        GROUP BY ORDER_ID;
+      SQL
+      comment       = "Order summary view"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
-<h3 id="5-add-grants"><a class="header" href="#5-add-grants">5. Add Grants</a></h3>
-<pre><code class="language-hcl"># Database grant
-resource "snowflake_grant_privileges_to_account_role" "SALES_DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.SALES_DB.name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Schema grant
-resource "snowflake_grant_privileges_to_account_role" "ORDERS_SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_schema {
-    schema_name = snowflake_schema.ORDERS.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Table grant
-resource "snowflake_grant_privileges_to_account_role" "ORDER_ITEMS_TABLE_GRANT" {
-  privileges        = ["SELECT", "INSERT", "UPDATE"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.ORDER_ITEMS.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# View grant
-resource "snowflake_grant_privileges_to_account_role" "ORDER_SUMMARY_VIEW_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_schema_object {
-    object_type = "VIEW"
-    object_name = snowflake_view.ORDER_SUMMARY.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
+<p><strong>Note:</strong> All grants are automatically handled by the modules - no separate grant resources needed!</p>
 <h2 id="importing-existing-resources"><a class="header" href="#importing-existing-resources">Importing Existing Resources</a></h2>
 <p>If a resource already exists in Snowflake, import it:</p>
 <pre><code class="language-bash"># Import database
@@ -5520,6 +5942,112 @@ variable "warehouse_size" {
 <p>This document provides a complete reference for all outputs available from the Terraform configuration.</p>
 <h2 id="root-module-outputs"><a class="header" href="#root-module-outputs">Root Module Outputs</a></h2>
 <p>Outputs are defined in <code>outputs.tf</code> and can be viewed using <code>terraform output</code>.</p>
+<h3 id="all_databases"><a class="header" href="#all_databases"><code>ALL_DATABASES</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the database module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  DATABASES = {
+    "DATABASE_NAME" = {
+      name    = "DATABASE_NAME"
+      comment = "Database description"
+      # ... other database attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all databases output
+terraform output ALL_DATABASES
+
+# View specific database
+terraform output -json ALL_DATABASES | jq '.DATABASES.ANALYTICS_DB'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a database
+database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
+</code></pre>
+<h3 id="all_schemas"><a class="header" href="#all_schemas"><code>ALL_SCHEMAS</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the schema module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  SCHEMAS = {
+    "SCHEMA_NAME" = {
+      name     = "SCHEMA_NAME"
+      database = "DATABASE_NAME"
+      # ... other schema attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all schemas output
+terraform output ALL_SCHEMAS
+
+# View specific schema
+terraform output -json ALL_SCHEMAS | jq '.SCHEMAS.ADS'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a schema
+schema_name = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+</code></pre>
+<h3 id="all_tables"><a class="header" href="#all_tables"><code>ALL_TABLES</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the tables module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  TABLES = {
+    "TABLE_NAME" = {
+      name     = "TABLE_NAME"
+      database = "DATABASE_NAME"
+      schema   = "SCHEMA_NAME"
+      # ... other table attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all tables output
+terraform output ALL_TABLES
+
+# View specific table
+terraform output -json ALL_TABLES | jq '.TABLES.FACEBOOK_ADS'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a table
+table_name = module.ALL_TABLES.TABLES.FACEBOOK_ADS.name
+</code></pre>
+<h3 id="all_views"><a class="header" href="#all_views"><code>ALL_VIEWS</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the views module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  VIEWS = {
+    "VIEW_NAME" = {
+      name     = "VIEW_NAME"
+      database = "DATABASE_NAME"
+      schema   = "SCHEMA_NAME"
+      # ... other view attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all views output
+terraform output ALL_VIEWS
+
+# View specific view
+terraform output -json ALL_VIEWS | jq '.VIEWS.AGG_FACEBOOK_ADS'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a view
+view_name = module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.name
+</code></pre>
 <h3 id="all_roles"><a class="header" href="#all_roles"><code>ALL_ROLES</code></a></h3>
 <p><strong>Type:</strong> <code>object</code><br />
 <strong>Sensitive:</strong> No<br />
@@ -5828,7 +6356,7 @@ output "ROLE_COUNT" {
 <tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>null</code></td><td>Comment describing the role</td></tr>
 </tbody></table>
 </div>
-<h3 id="outputs-6"><a class="header" href="#outputs-6">Outputs</a></h3>
+<h3 id="outputs-10"><a class="header" href="#outputs-10">Outputs</a></h3>
 <h4 id="roles-2"><a class="header" href="#roles-2"><code>ROLES</code></a></h4>
 <p><strong>Type:</strong> <code>map(object)</code><br />
 <strong>Description:</strong> Map of all created role resources, keyed by role name</p>
@@ -5909,7 +6437,7 @@ module.ALL_ROLES.ROLES.ANALYST.name
 <li><strong>service</strong>: Modern service account for applications (recommended)</li>
 <li><strong>legacy_service</strong>: Legacy service account for backward compatibility</li>
 </ul>
-<h3 id="outputs-7"><a class="header" href="#outputs-7">Outputs</a></h3>
+<h3 id="outputs-11"><a class="header" href="#outputs-11">Outputs</a></h3>
 <h4 id="users-2"><a class="header" href="#users-2"><code>USERS</code></a></h4>
 <p><strong>Type:</strong> <code>map(object)</code><br />
 <strong>Description:</strong> Map of all created person user resources</p>
@@ -6007,7 +6535,7 @@ module.ALL_ROLES.ROLES.ANALYST.name
 <tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>Yes</td><td>List of privileges: “USAGE”, “OPERATE”, “MODIFY”, “MONITOR”, “ALL PRIVILEGES”</td></tr>
 </tbody></table>
 </div>
-<h3 id="outputs-8"><a class="header" href="#outputs-8">Outputs</a></h3>
+<h3 id="outputs-12"><a class="header" href="#outputs-12">Outputs</a></h3>
 <h4 id="warehouses-2"><a class="header" href="#warehouses-2"><code>WAREHOUSES</code></a></h4>
 <p><strong>Type:</strong> <code>map(object)</code><br />
 <strong>Description:</strong> Map of all created warehouse resources, keyed by warehouse name</p>
@@ -6024,7 +6552,7 @@ module.ALL_ROLES.ROLES.ANALYST.name
 <pre><code class="language-hcl"># Reference a warehouse
 module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
 </code></pre>
-<h2 id="provider-requirements-8"><a class="header" href="#provider-requirements-8">Provider Requirements</a></h2>
+<h2 id="provider-requirements-7"><a class="header" href="#provider-requirements-7">Provider Requirements</a></h2>
 <p>All modules require provider aliases:</p>
 <h3 id="roles-module-3"><a class="header" href="#roles-module-3">Roles Module</a></h3>
 <pre><code class="language-hcl">providers = {
@@ -6041,13 +6569,45 @@ module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
   snowflake = snowflake.snowflake_sysadmin
 }
 </code></pre>
-<h2 id="common-patterns-3"><a class="header" href="#common-patterns-3">Common Patterns</a></h2>
+<h3 id="database-module-1"><a class="header" href="#database-module-1">Database Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="schema-module-1"><a class="header" href="#schema-module-1">Schema Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="tables-module-1"><a class="header" href="#tables-module-1">Tables Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="views-module-1"><a class="header" href="#views-module-1">Views Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="common-patterns-2"><a class="header" href="#common-patterns-2">Common Patterns</a></h2>
 <h3 id="referencing-module-outputs"><a class="header" href="#referencing-module-outputs">Referencing Module Outputs</a></h3>
 <pre><code class="language-hcl"># Reference roles
 roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
 
 # Reference warehouses
 default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
+
+# Reference databases
+database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+
+# Reference schemas
+schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+
+# Reference tables
+table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
+
+# Reference views
+view_name = module.ALL_VIEWS.VIEWS.MY_VIEW.name
 </code></pre>
 <h3 id="conditional-configuration-1"><a class="header" href="#conditional-configuration-1">Conditional Configuration</a></h3>
 <pre><code class="language-hcl"># Conditional role assignment
@@ -6066,6 +6626,173 @@ warehouse_map = {
   }
 }
 </code></pre>
+<h2 id="database-module-2"><a class="header" href="#database-module-2">Database Module</a></h2>
+<h3 id="inputs-6"><a class="header" href="#inputs-6">Inputs</a></h3>
+<h4 id="database_map-1"><a class="header" href="#database_map-1"><code>database_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of database names to database configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">database_map = {
+  "DATABASE_NAME" = {
+    comment                     = "Database description"  # Optional
+    data_retention_time_in_days = 1                       # Optional, default: 1
+    role_privileges = [                                    # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the database</td></tr>
+<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td>No</td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-13"><a class="header" href="#outputs-13">Outputs</a></h3>
+<h4 id="databases-1"><a class="header" href="#databases-1"><code>DATABASES</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created database resources, keyed by database name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_DATABASES.DATABASES.DATABASE_NAME
+</code></pre>
+<h2 id="schema-module-2"><a class="header" href="#schema-module-2">Schema Module</a></h2>
+<h3 id="inputs-7"><a class="header" href="#inputs-7">Inputs</a></h3>
+<h4 id="schema_map-1"><a class="header" href="#schema_map-1"><code>schema_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of schema names to schema configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">schema_map = {
+  "SCHEMA_NAME" = {
+    database_name               = "DATABASE_NAME"  # Required
+    with_managed_access         = false            # Required
+    is_transient                = false            # Required
+    comment                     = "Schema description"  # Optional
+    data_retention_time_in_days = 1                    # Optional, default: 1
+    role_privileges = [                                 # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>with_managed_access</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Enable managed access (object-level security)</td></tr>
+<tr><td><code>is_transient</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Whether schema is transient (no Time Travel)</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the schema</td></tr>
+<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td>No</td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-14"><a class="header" href="#outputs-14">Outputs</a></h3>
+<h4 id="schemas-1"><a class="header" href="#schemas-1"><code>SCHEMAS</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created schema resources, keyed by schema name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_SCHEMAS.SCHEMAS.SCHEMA_NAME
+</code></pre>
+<h2 id="tables-module-2"><a class="header" href="#tables-module-2">Tables Module</a></h2>
+<h3 id="inputs-8"><a class="header" href="#inputs-8">Inputs</a></h3>
+<h4 id="table_map-1"><a class="header" href="#table_map-1"><code>table_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of table names to table configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">table_map = {
+  "TABLE_NAME" = {
+    database_name = "DATABASE_NAME"  # Required
+    schema_name   = "SCHEMA_NAME"    # Required
+    comment       = "Table description"  # Optional
+    columns = [                         # Required
+      {
+        name     = "COLUMN_NAME"
+        type     = "VARCHAR(255)"
+        nullable = true   # Optional, default: true
+        comment  = "Column description"  # Optional
+      }
+    ]
+    role_privileges = [  # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["SELECT"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>schema_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent schema</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the table</td></tr>
+<tr><td><code>columns</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of column definitions</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-15"><a class="header" href="#outputs-15">Outputs</a></h3>
+<h4 id="tables-1"><a class="header" href="#tables-1"><code>TABLES</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created table resources, keyed by table name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_TABLES.TABLES.TABLE_NAME
+</code></pre>
+<h2 id="views-module-2"><a class="header" href="#views-module-2">Views Module</a></h2>
+<h3 id="inputs-9"><a class="header" href="#inputs-9">Inputs</a></h3>
+<h4 id="view_map-1"><a class="header" href="#view_map-1"><code>view_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of view names to view configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">view_map = {
+  "VIEW_NAME" = {
+    database_name = "DATABASE_NAME"  # Required
+    schema_name   = "SCHEMA_NAME"    # Required
+    statement     = "SELECT ..."     # Required
+    comment       = "View description"  # Optional
+    depends_on    = []                  # Optional
+    role_privileges = [                 # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["SELECT"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>schema_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent schema</td></tr>
+<tr><td><code>statement</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>SQL SELECT statement defining the view</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the view</td></tr>
+<tr><td><code>depends_on</code></td><td><code>list(string)</code></td><td>No</td><td><code>[]</code></td><td>Optional list of dependent resource addresses</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-16"><a class="header" href="#outputs-16">Outputs</a></h3>
+<h4 id="views-1"><a class="header" href="#views-1"><code>VIEWS</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created view resources, keyed by view name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_VIEWS.VIEWS.VIEW_NAME
+</code></pre>
 <h2 id="related-documentation-10"><a class="header" href="#related-documentation-10">Related Documentation</a></h2>
 <ul>
 <li><a href="reference/variables.html">Variables Reference</a> - Root module variables</li>
@@ -6073,6 +6800,10 @@ warehouse_map = {
 <li><a href="reference/../modules/roles-module.html">Roles Module</a> - Detailed roles module documentation</li>
 <li><a href="reference/../modules/users-module.html">Users Module</a> - Detailed users module documentation</li>
 <li><a href="reference/../modules/warehouse-module.html">Warehouse Module</a> - Detailed warehouse module documentation</li>
+<li><a href="reference/../modules/database-module.html">Database Module</a> - Detailed database module documentation</li>
+<li><a href="reference/../modules/schema-module.html">Schema Module</a> - Detailed schema module documentation</li>
+<li><a href="reference/../modules/tables-module.html">Tables Module</a> - Detailed tables module documentation</li>
+<li><a href="reference/../modules/views-module.html">Views Module</a> - Detailed views module documentation</li>
 </ul>
 
                     </main>

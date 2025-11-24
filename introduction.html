@@ -157,24 +157,26 @@
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <p>Welcome to the Snowflake Terraform Infrastructure documentation. This project provides a comprehensive Infrastructure-as-Code (IaC) solution for managing Snowflake resources using Terraform.</p>
 <h2 id="what-is-this-project"><a class="header" href="#what-is-this-project">What is This Project?</a></h2>
-<p>This Terraform configuration manages Snowflake infrastructure components including:</p>
+<p>This Terraform configuration manages Snowflake infrastructure components through a modular architecture:</p>
 <ul>
-<li><strong>Roles</strong>: Account roles with hierarchical relationships</li>
-<li><strong>Users</strong>: Person users, service users, and legacy service users</li>
-<li><strong>Warehouses</strong>: Compute warehouses with configurable sizing and scaling policies</li>
-<li><strong>Databases</strong>: Snowflake databases with retention policies</li>
-<li><strong>Schemas</strong>: Database schemas with managed access</li>
-<li><strong>Tables</strong>: Structured data tables with columns and constraints</li>
-<li><strong>Views</strong>: SQL views for data aggregation and presentation</li>
-<li><strong>Grants</strong>: Privilege grants for roles on various objects</li>
+<li><strong>Roles Module</strong>: Account roles with hierarchical relationships</li>
+<li><strong>Users Module</strong>: Person users, service users, and legacy service users</li>
+<li><strong>Warehouse Module</strong>: Compute warehouses with configurable sizing and scaling policies</li>
+<li><strong>Database Module</strong>: Snowflake databases with retention policies and automatic privilege grants</li>
+<li><strong>Schema Module</strong>: Database schemas with managed access and automatic privilege grants</li>
+<li><strong>Tables Module</strong>: Structured data tables with columns, constraints, and automatic privilege grants</li>
+<li><strong>Views Module</strong>: SQL views for data aggregation and presentation with automatic privilege grants</li>
 </ul>
+<p>All modules handle privilege grants internally, providing a complete, self-contained infrastructure management solution.</p>
 <h2 id="key-features"><a class="header" href="#key-features">Key Features</a></h2>
 <ul>
-<li><strong>Modular Design</strong>: Reusable modules for roles, users, and warehouses</li>
+<li><strong>Fully Modular Design</strong>: All resources (roles, users, warehouses, databases, schemas, tables, views) are managed through reusable modules</li>
+<li><strong>Automatic Grant Management</strong>: Each module handles privilege grants internally, ensuring consistent access control</li>
 <li><strong>Provider Aliases</strong>: Separate provider configurations for SECURITYADMIN and SYSADMIN roles</li>
-<li><strong>Flexible Configuration</strong>: Map-based configuration for easy resource management</li>
-<li><strong>Role-Based Access Control</strong>: Comprehensive RBAC implementation</li>
-<li><strong>Dependency Management</strong>: Proper resource dependencies and ordering</li>
+<li><strong>Flexible Configuration</strong>: Map-based configuration for easy resource management and scaling</li>
+<li><strong>Role-Based Access Control</strong>: Comprehensive RBAC implementation with automatic privilege assignment</li>
+<li><strong>Dependency Management</strong>: Proper resource dependencies and ordering across modules</li>
+<li><strong>Consistent Patterns</strong>: All modules follow the same design patterns for ease of use and maintenance</li>
 </ul>
 <h2 id="project-goals"><a class="header" href="#project-goals">Project Goals</a></h2>
 <ol>

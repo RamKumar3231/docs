@@ -1,0 +1,620 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Tables Module - Snowflake Terraform Infrastructure Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Comprehensive documentation for managing Snowflake infrastructure using Terraform">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Snowflake Terraform Infrastructure Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="tables-module"><a class="header" href="#tables-module">Tables Module</a></h1>
+<p>The Tables module manages Snowflake tables with automatic privilege grant management.</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>The Tables module (<code>modules/snowflake/tables</code>) creates Snowflake tables within schemas and automatically grants privileges to specified roles. This module provides a complete solution for table management including column definitions and access control.</p>
+<h2 id="module-location"><a class="header" href="#module-location">Module Location</a></h2>
+<pre><code>modules/snowflake/tables/
+├── main.tf        # Table resource definitions and grants
+├── variables.tf   # Input variables
+└── outputs.tf     # Output values
+</code></pre>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<h3 id="basic-table"><a class="header" href="#basic-table">Basic Table</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "MY_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+      comment       = "My table"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "NAME"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="table-with-all-options"><a class="header" href="#table-with-all-options">Table with All Options</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "ORDERS" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.SALES_SCHEMA.name
+      comment       = "Orders table"
+      columns = [
+        {
+          name     = "ORDER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+          comment  = "Primary key"
+        },
+        {
+          name     = "CUSTOMER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "ORDER_DATE"
+          type     = "TIMESTAMP_NTZ(9)"
+          nullable = false
+        },
+        {
+          name     = "TOTAL_AMOUNT"
+          type     = "NUMBER(10,2)"
+          nullable = true
+          comment  = "Order total in dollars"
+        },
+        {
+          name     = "METADATA"
+          type     = "VARIANT"
+          nullable = true
+          comment  = "Additional metadata in JSON format"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT", "INSERT", "UPDATE"]
+        }
+      ]
+      with_grant_option = false
+    }
+  }
+}
+</code></pre>
+<h2 id="input-variables"><a class="header" href="#input-variables">Input Variables</a></h2>
+<h3 id="table_map"><a class="header" href="#table_map"><code>table_map</code></a></h3>
+<p>Type: <code>map(object)</code><br />
+Required: Yes<br />
+Description: Map of table names to table configurations</p>
+<h4 id="table-configuration-object"><a class="header" href="#table-configuration-object">Table Configuration Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>schema_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent schema</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the table</td></tr>
+<tr><td><code>columns</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of column definitions</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h4 id="column-object"><a class="header" href="#column-object">Column Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Column name</td></tr>
+<tr><td><code>type</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Column data type</td></tr>
+<tr><td><code>nullable</code></td><td><code>bool</code></td><td>No</td><td><code>true</code></td><td>Whether column allows NULL values</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>null</code></td><td>Comment describing the column</td></tr>
+</tbody></table>
+</div>
+<h4 id="role-privilege-object"><a class="header" href="#role-privilege-object">Role Privilege Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Yes</td><td>Name of the role receiving privileges</td></tr>
+<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>Yes</td><td>List of privileges: “SELECT”, “INSERT”, “UPDATE”, “DELETE”, etc.</td></tr>
+</tbody></table>
+</div>
+<h2 id="resources-created"><a class="header" href="#resources-created">Resources Created</a></h2>
+<h3 id="snowflake_tabletables"><a class="header" href="#snowflake_tabletables"><code>snowflake_table.TABLES</code></a></h3>
+<p>Creates tables using <code>for_each</code> over the <code>table_map</code>.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>name</code>: Table name (from map key)</li>
+<li><code>database</code>: Parent database name</li>
+<li><code>schema</code>: Parent schema name</li>
+<li><code>comment</code>: Table comment</li>
+<li><code>column</code>: Dynamic blocks for each column</li>
+</ul>
+<h3 id="snowflake_grant_privileges_to_account_roletable_grants"><a class="header" href="#snowflake_grant_privileges_to_account_roletable_grants"><code>snowflake_grant_privileges_to_account_role.TABLE_GRANTS</code></a></h3>
+<p>Automatically grants table privileges to roles based on the <code>role_privileges</code> configuration.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>account_role_name</code>: Role receiving privileges</li>
+<li><code>privileges</code>: List of privileges</li>
+<li><code>on_schema_object.object_type</code>: “TABLE”</li>
+<li><code>on_schema_object.object_name</code>: Fully qualified table name (database.schema.table)</li>
+<li><code>with_grant_option</code>: Whether grant includes grant option</li>
+</ul>
+<p><strong>Dependencies:</strong></p>
+<ul>
+<li>Depends on <code>snowflake_table.TABLES</code> to ensure tables exist before granting</li>
+</ul>
+<h2 id="outputs"><a class="header" href="#outputs">Outputs</a></h2>
+<h3 id="tables"><a class="header" href="#tables"><code>TABLES</code></a></h3>
+<p>Type: <code>map(object)</code></p>
+<p>A map of all created table resources, keyed by table name.</p>
+<p><strong>Example Output:</strong></p>
+<pre><code class="language-hcl">{
+  "MY_TABLE" = {
+    name     = "MY_TABLE"
+    database = "MY_DB"
+    schema   = "MY_SCHEMA"
+    # ... other attributes
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl"># Reference a table in views module
+table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
+</code></pre>
+<h2 id="data-types"><a class="header" href="#data-types">Data Types</a></h2>
+<p>Common Snowflake data types:</p>
+<h3 id="numeric-types"><a class="header" href="#numeric-types">Numeric Types</a></h3>
+<ul>
+<li><code>NUMBER(p,s)</code>: Fixed-point number (precision, scale)</li>
+<li><code>FLOAT</code>, <code>FLOAT4</code>, <code>FLOAT8</code>: Floating-point numbers</li>
+<li><code>INTEGER</code>, <code>INT</code>, <code>BIGINT</code>, <code>SMALLINT</code>, <code>TINYINT</code>: Integer types</li>
+</ul>
+<h3 id="string-types"><a class="header" href="#string-types">String Types</a></h3>
+<ul>
+<li><code>VARCHAR(n)</code>: Variable-length string (max 16MB)</li>
+<li><code>CHAR(n)</code>: Fixed-length string</li>
+<li><code>STRING</code>: Alias for VARCHAR(16777216)</li>
+<li><code>TEXT</code>: Alias for VARCHAR(16777216)</li>
+</ul>
+<h3 id="datetime-types"><a class="header" href="#datetime-types">Date/Time Types</a></h3>
+<ul>
+<li><code>DATE</code>: Date only</li>
+<li><code>TIME</code>: Time only</li>
+<li><code>TIMESTAMP_NTZ</code>: Timestamp without timezone</li>
+<li><code>TIMESTAMP_LTZ</code>: Timestamp with local timezone</li>
+<li><code>TIMESTAMP_TZ</code>: Timestamp with timezone</li>
+</ul>
+<h3 id="other-types"><a class="header" href="#other-types">Other Types</a></h3>
+<ul>
+<li><code>BOOLEAN</code>: True/false values</li>
+<li><code>VARIANT</code>: Semi-structured data (JSON, etc.)</li>
+<li><code>ARRAY</code>: Array of values</li>
+<li><code>OBJECT</code>: Key-value pairs</li>
+</ul>
+<h2 id="available-privileges"><a class="header" href="#available-privileges">Available Privileges</a></h2>
+<ul>
+<li><strong>SELECT</strong>: Query the table</li>
+<li><strong>INSERT</strong>: Insert rows into the table</li>
+<li><strong>UPDATE</strong>: Update rows in the table</li>
+<li><strong>DELETE</strong>: Delete rows from the table</li>
+<li><strong>TRUNCATE</strong>: Truncate the table</li>
+<li><strong>REFERENCES</strong>: Reference the table in foreign keys</li>
+<li><strong>OWNERSHIP</strong>: Full ownership of the table</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
+<h2 id="provider-requirements"><a class="header" href="#provider-requirements">Provider Requirements</a></h2>
+<p>The module requires the <code>snowflake_sysadmin</code> provider alias because:</p>
+<ul>
+<li>Creating tables requires SYSADMIN privileges</li>
+<li>Granting table privileges requires SYSADMIN privileges</li>
+</ul>
+<p><strong>Note:</strong> The provider configuration includes <code>preview_features_enabled = ["snowflake_table_resource"]</code> which may be required for table operations.</p>
+<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
+<h3 id="internal-dependencies"><a class="header" href="#internal-dependencies">Internal Dependencies</a></h3>
+<ul>
+<li><code>snowflake_grant_privileges_to_account_role.TABLE_GRANTS</code> depends on <code>snowflake_table.TABLES</code></li>
+</ul>
+<h3 id="external-dependencies"><a class="header" href="#external-dependencies">External Dependencies</a></h3>
+<ul>
+<li><strong>Database Module</strong>: Tables must reference existing databases</li>
+<li><strong>Schema Module</strong>: Tables must reference existing schemas</li>
+<li><strong>Roles Module</strong>: Tables reference roles from the roles module for privilege grants</li>
+</ul>
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="simple-table"><a class="header" href="#simple-table">Simple Table</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "USERS" = {
+      database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.PUBLIC.name
+      comment       = "User table"
+      columns = [
+        {
+          name     = "USER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "USERNAME"
+          type = "VARCHAR(255)"
+        },
+        {
+          name = "EMAIL"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="table-with-variant-column"><a class="header" href="#table-with-variant-column">Table with Variant Column</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "FACEBOOK_ADS" = {
+      database_name = module.ALL_DATABASES.DATABASES.TEST_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+      comment       = "A table for facebook ads data"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "AD_NAME"
+          type     = "VARCHAR(255)"
+          nullable = false
+        },
+        {
+          name = "AD_DATE"
+          type = "TIMESTAMP_NTZ(9)"
+        },
+        {
+          name    = "EXAMPLE_VARIANT"
+          type    = "VARIANT"
+          comment = "extra data for the ad"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="read-write-table"><a class="header" href="#read-write-table">Read-Write Table</a></h3>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  table_map = {
+    "ORDERS" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.SALES_SCHEMA.name
+      comment       = "Orders table"
+      columns = [
+        {
+          name     = "ORDER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "CUSTOMER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "AMOUNT"
+          type     = "NUMBER(10,2)"
+          nullable = false
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<ol>
+<li><strong>Descriptive Names</strong>: Use clear, descriptive table and column names</li>
+<li><strong>Comments</strong>: Always add comments explaining table and column purpose</li>
+<li><strong>Nullable Columns</strong>: Explicitly set <code>nullable</code> for clarity</li>
+<li><strong>Data Types</strong>: Choose appropriate data types for data</li>
+<li><strong>Access Control</strong>: Grant appropriate privileges to roles</li>
+<li><strong>Minimal Privileges</strong>: Grant only necessary privileges</li>
+<li><strong>Database/Schema Reference</strong>: Always reference databases and schemas from modules</li>
+</ol>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h3 id="table-already-exists"><a class="header" href="#table-already-exists">Table Already Exists</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: 2003: Object already exists
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Import existing table: <code>terraform import module.ALL_TABLES.snowflake_table.TABLES["TABLE_NAME"] "DB.SCHEMA.TABLE"</code></li>
+<li>Or remove table from Snowflake manually</li>
+<li>Or use a different table name</li>
+</ul>
+<h3 id="schema-not-found"><a class="header" href="#schema-not-found">Schema Not Found</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Schema does not exist
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure schema is created before table</li>
+<li>Verify schema name is correct</li>
+<li>Check that schema exists in Snowflake</li>
+<li>Reference schema using module output: <code>module.ALL_SCHEMAS.SCHEMAS.SCHEMA_NAME.name</code></li>
+</ul>
+<h3 id="invalid-data-type"><a class="header" href="#invalid-data-type">Invalid Data Type</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Invalid data type
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Verify data type syntax is correct</li>
+<li>Check that data type is supported by Snowflake</li>
+<li>Review Snowflake data type documentation</li>
+</ul>
+<h3 id="insufficient-privileges"><a class="header" href="#insufficient-privileges">Insufficient Privileges</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: 001003 (42000): SQL access control error: Insufficient privileges
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure provider uses SYSADMIN role</li>
+<li>Verify user can assume SYSADMIN role</li>
+<li>Check that user has necessary privileges</li>
+</ul>
+<h2 id="related-documentation"><a class="header" href="#related-documentation">Related Documentation</a></h2>
+<ul>
+<li><a href="schema-module.html">Schema Module</a> - Creates parent schemas</li>
+<li><a href="database-module.html">Database Module</a> - Creates parent databases</li>
+<li><a href="roles-module.html">Roles Module</a> - Creates roles that receive table privileges</li>
+<li><a href="views-module.html">Views Module</a> - Creates views that may reference tables</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../modules/schema-module.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../modules/views-module.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../modules/schema-module.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../modules/views-module.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

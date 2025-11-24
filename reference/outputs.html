@@ -158,6 +158,112 @@
 <p>This document provides a complete reference for all outputs available from the Terraform configuration.</p>
 <h2 id="root-module-outputs"><a class="header" href="#root-module-outputs">Root Module Outputs</a></h2>
 <p>Outputs are defined in <code>outputs.tf</code> and can be viewed using <code>terraform output</code>.</p>
+<h3 id="all_databases"><a class="header" href="#all_databases"><code>ALL_DATABASES</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the database module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  DATABASES = {
+    "DATABASE_NAME" = {
+      name    = "DATABASE_NAME"
+      comment = "Database description"
+      # ... other database attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all databases output
+terraform output ALL_DATABASES
+
+# View specific database
+terraform output -json ALL_DATABASES | jq '.DATABASES.ANALYTICS_DB'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a database
+database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
+</code></pre>
+<h3 id="all_schemas"><a class="header" href="#all_schemas"><code>ALL_SCHEMAS</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the schema module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  SCHEMAS = {
+    "SCHEMA_NAME" = {
+      name     = "SCHEMA_NAME"
+      database = "DATABASE_NAME"
+      # ... other schema attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all schemas output
+terraform output ALL_SCHEMAS
+
+# View specific schema
+terraform output -json ALL_SCHEMAS | jq '.SCHEMAS.ADS'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a schema
+schema_name = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+</code></pre>
+<h3 id="all_tables"><a class="header" href="#all_tables"><code>ALL_TABLES</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the tables module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  TABLES = {
+    "TABLE_NAME" = {
+      name     = "TABLE_NAME"
+      database = "DATABASE_NAME"
+      schema   = "SCHEMA_NAME"
+      # ... other table attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all tables output
+terraform output ALL_TABLES
+
+# View specific table
+terraform output -json ALL_TABLES | jq '.TABLES.FACEBOOK_ADS'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a table
+table_name = module.ALL_TABLES.TABLES.FACEBOOK_ADS.name
+</code></pre>
+<h3 id="all_views"><a class="header" href="#all_views"><code>ALL_VIEWS</code></a></h3>
+<p><strong>Type:</strong> <code>object</code><br />
+<strong>Sensitive:</strong> No<br />
+<strong>Description:</strong> Complete output from the views module</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">{
+  VIEWS = {
+    "VIEW_NAME" = {
+      name     = "VIEW_NAME"
+      database = "DATABASE_NAME"
+      schema   = "SCHEMA_NAME"
+      # ... other view attributes
+    }
+  }
+}
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># View all views output
+terraform output ALL_VIEWS
+
+# View specific view
+terraform output -json ALL_VIEWS | jq '.VIEWS.AGG_FACEBOOK_ADS'
+</code></pre>
+<p><strong>In Configuration:</strong></p>
+<pre><code class="language-hcl"># Reference a view
+view_name = module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.name
+</code></pre>
 <h3 id="all_roles"><a class="header" href="#all_roles"><code>ALL_ROLES</code></a></h3>
 <p><strong>Type:</strong> <code>object</code><br />
 <strong>Sensitive:</strong> No<br />

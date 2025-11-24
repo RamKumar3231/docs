@@ -158,7 +158,7 @@
 <p>This document explains the structure and organization of the Terraform project.</p>
 <h2 id="directory-layout"><a class="header" href="#directory-layout">Directory Layout</a></h2>
 <pre><code>terraform/
-├── main.tf                    # Main configuration with modules and resources
+├── main.tf                    # Main configuration with all modules
 ├── provider.tf                # Provider configuration
 ├── variables.tf               # Variable definitions
 ├── outputs.tf                 # Output definitions
@@ -178,19 +178,35 @@
         │   ├── main.tf        # User resource definitions
         │   ├── variables.tf   # User module variables
         │   └── outputs.tf     # User module outputs
-        └── warehouse/
-            ├── main.tf        # Warehouse resource definitions
-            ├── variables.tf   # Warehouse module variables
-            └── outputs.tf     # Warehouse module outputs
+        ├── warehouse/
+        │   ├── main.tf        # Warehouse resource definitions
+        │   ├── variables.tf   # Warehouse module variables
+        │   └── outputs.tf     # Warehouse module outputs
+        ├── database/
+        │   ├── main.tf        # Database resource definitions and grants
+        │   ├── variables.tf   # Database module variables
+        │   └── outputs.tf     # Database module outputs
+        ├── schema/
+        │   ├── main.tf        # Schema resource definitions and grants
+        │   ├── variables.tf   # Schema module variables
+        │   └── outputs.tf     # Schema module outputs
+        ├── tables/
+        │   ├── main.tf        # Table resource definitions and grants
+        │   ├── variables.tf   # Tables module variables
+        │   └── outputs.tf     # Tables module outputs
+        └── views/
+            ├── main.tf        # View resource definitions and grants
+            ├── variables.tf   # Views module variables
+            └── outputs.tf     # Views module outputs
 </code></pre>
 <h2 id="file-descriptions"><a class="header" href="#file-descriptions">File Descriptions</a></h2>
 <h3 id="root-level-files"><a class="header" href="#root-level-files">Root Level Files</a></h3>
 <h4 id="maintf"><a class="header" href="#maintf"><code>main.tf</code></a></h4>
 <p>The primary configuration file containing:</p>
 <ul>
-<li>Module declarations for roles, users, and warehouses</li>
-<li>Direct resource definitions (databases, schemas, tables, views)</li>
-<li>Grant resources for privilege management</li>
+<li>Module declarations for all resources (roles, users, warehouses, databases, schemas, tables, views)</li>
+<li>All resources are managed through modules - no direct resource definitions</li>
+<li>Each module handles its own privilege grants automatically</li>
 </ul>
 <h4 id="providertf"><a class="header" href="#providertf"><code>provider.tf</code></a></h4>
 <p>Defines the Terraform providers:</p>

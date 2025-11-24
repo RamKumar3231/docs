@@ -255,13 +255,28 @@ terraform apply
 <h3 id="4-adding-a-new-database"><a class="header" href="#4-adding-a-new-database">4. Adding a New Database</a></h3>
 <p>To add a new database:</p>
 <ol>
-<li><strong>Edit <code>main.tf</code></strong> and add the database resource:</li>
+<li><strong>Edit <code>main.tf</code></strong> and add the database to the <code>database_map</code>:</li>
 </ol>
-<pre><code class="language-hcl">resource "snowflake_database" "NEW_DB" {
-  name                        = "NEW_DB"
-  comment                     = "New database"
-  data_retention_time_in_days = 1
-  provider                    = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    # ... existing databases ...
+    "NEW_DB" = {
+      comment                     = "New database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <ol start="2">
@@ -270,29 +285,78 @@ terraform apply
 <pre><code class="language-bash">terraform plan
 terraform apply
 </code></pre>
-<h3 id="5-adding-a-new-table"><a class="header" href="#5-adding-a-new-table">5. Adding a New Table</a></h3>
+<h3 id="5-adding-a-new-schema"><a class="header" href="#5-adding-a-new-schema">5. Adding a New Schema</a></h3>
+<p>To add a new schema:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add the schema to the <code>schema_map</code>:</li>
+</ol>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    # ... existing schemas ...
+    "NEW_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.NEW_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "New schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan and apply</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+terraform apply
+</code></pre>
+<h3 id="6-adding-a-new-table"><a class="header" href="#6-adding-a-new-table">6. Adding a New Table</a></h3>
 <p>To add a new table:</p>
 <ol>
-<li><strong>Edit <code>main.tf</code></strong> and add the table resource:</li>
+<li><strong>Edit <code>main.tf</code></strong> and add the table to the <code>table_map</code>:</li>
 </ol>
-<pre><code class="language-hcl">resource "snowflake_table" "NEW_TABLE" {
-  database = snowflake_database.NEW_DB.name
-  schema   = snowflake_schema.PUBLIC.name
-  name     = "NEW_TABLE"
-  comment  = "New table"
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
   }
   
-  column {
-    name = "NAME"
-    type = "VARCHAR(255)"
+  table_map = {
+    # ... existing tables ...
+    "NEW_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.NEW_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.NEW_SCHEMA.name
+      comment       = "New table"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "NAME"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <ol start="2">
@@ -301,49 +365,7 @@ terraform apply
 <pre><code class="language-bash">terraform plan
 terraform apply
 </code></pre>
-<h3 id="6-granting-access-to-a-role"><a class="header" href="#6-granting-access-to-a-role">6. Granting Access to a Role</a></h3>
-<p>To grant access to a role:</p>
-<ol>
-<li><strong>Edit <code>main.tf</code></strong> and add grant resources:</li>
-</ol>
-<pre><code class="language-hcl"># Grant database access
-resource "snowflake_grant_privileges_to_account_role" "ROLE_DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.NEW_DB.name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Grant schema access
-resource "snowflake_grant_privileges_to_account_role" "ROLE_SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
-  on_schema {
-    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Grant table access
-resource "snowflake_grant_privileges_to_account_role" "ROLE_TABLE_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.NEW_TABLE.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<ol start="2">
-<li><strong>Plan and apply</strong>:</li>
-</ol>
-<pre><code class="language-bash">terraform plan
-terraform apply
-</code></pre>
+<p><strong>Note:</strong> Privilege grants are automatically handled by the module - no separate grant resources needed!</p>
 <h2 id="terraform-commands"><a class="header" href="#terraform-commands">Terraform Commands</a></h2>
 <h3 id="initialize"><a class="header" href="#initialize">Initialize</a></h3>
 <pre><code class="language-bash">terraform init
@@ -444,49 +466,57 @@ default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
   roles_to_assign  = [module.ALL_ROLES.ROLES.ANALYST.name]
 }
 
-# 4. Database grant
-resource "snowflake_grant_privileges_to_account_role" "ANALYST_DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.MY_DB.name
-  }
-  provider = snowflake.snowflake_sysadmin
+# 4. Database with automatic grant (in database_map)
+"MY_DB" = {
+  comment                     = "My database"
+  data_retention_time_in_days = 1
+  role_privileges = [
+    {
+      account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+      privileges        = ["USAGE"]
+    }
+  ]
 }
 </code></pre>
 <h3 id="pattern-2-read-only-access"><a class="header" href="#pattern-2-read-only-access">Pattern 2: Read-Only Access</a></h3>
-<p>Grant read-only access to a role:</p>
-<pre><code class="language-hcl"># Database USAGE
-resource "snowflake_grant_privileges_to_account_role" "READONLY_DB" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.MY_DB.name
+<p>Grant read-only access to a role (all grants handled automatically in modules):</p>
+<pre><code class="language-hcl"># Database with USAGE grant
+database_map = {
+  "MY_DB" = {
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+        privileges        = ["USAGE"]
+      }
+    ]
   }
-  provider = snowflake.snowflake_sysadmin
 }
 
-# Schema USAGE
-resource "snowflake_grant_privileges_to_account_role" "READONLY_SCHEMA" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_schema {
-    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
+# Schema with USAGE grant
+schema_map = {
+  "PUBLIC" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+        privileges        = ["USAGE"]
+      }
+    ]
   }
-  provider = snowflake.snowflake_sysadmin
 }
 
-# Table SELECT (read-only)
-resource "snowflake_grant_privileges_to_account_role" "READONLY_TABLE" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+# Table with SELECT grant (read-only)
+table_map = {
+  "MY_TABLE" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    schema_name   = module.ALL_SCHEMAS.SCHEMAS.PUBLIC.name
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+        privileges        = ["SELECT"]
+      }
+    ]
   }
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h2 id="troubleshooting-common-issues"><a class="header" href="#troubleshooting-common-issues">Troubleshooting Common Issues</a></h2>

@@ -176,122 +176,140 @@ terraform plan
 </code></pre>
 <h2 id="adding-a-new-database"><a class="header" href="#adding-a-new-database">Adding a New Database</a></h2>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "NEW_DATABASE" {
-  name                        = "NEW_DATABASE"
-  comment                     = "Description of the database"
-  data_retention_time_in_days = 1
-  provider                    = snowflake.snowflake_sysadmin
+<p>Add to the <code>database_map</code> in the <code>ALL_DATABASES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "NEW_DATABASE" = {
+      comment                     = "Description of the database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="considerations"><a class="header" href="#considerations">Considerations</a></h3>
 <ul>
 <li>Database names must be unique</li>
 <li>Choose appropriate retention period</li>
-<li>Consider granting USAGE to roles</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
 <h2 id="adding-a-new-schema"><a class="header" href="#adding-a-new-schema">Adding a New Schema</a></h2>
 <h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "NEW_SCHEMA" {
-  name     = "NEW_SCHEMA"
-  database = snowflake_database.NEW_DATABASE.name
-  comment  = "Description of the schema"
-  provider = snowflake.snowflake_sysadmin
+<p>Add to the <code>schema_map</code> in the <code>ALL_SCHEMAS</code> module:</p>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "NEW_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.NEW_DATABASE.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "Description of the schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="considerations-1"><a class="header" href="#considerations-1">Considerations</a></h3>
 <ul>
-<li>Schema must reference an existing database</li>
+<li>Schema must reference an existing database (use module output)</li>
 <li>Consider <code>with_managed_access</code> for security</li>
 <li>Consider <code>is_transient</code> for temporary data</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
 <h2 id="adding-a-new-table"><a class="header" href="#adding-a-new-table">Adding a New Table</a></h2>
 <h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "NEW_TABLE" {
-  database = snowflake_database.NEW_DATABASE.name
-  schema   = snowflake_schema.NEW_SCHEMA.name
-  name     = "NEW_TABLE"
-  comment  = "Description of the table"
+<p>Add to the <code>table_map</code> in the <code>ALL_TABLES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
+  table_map = {
+    # ... existing tables ...
+    "NEW_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.NEW_DATABASE.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.NEW_SCHEMA.name
+      comment       = "Description of the table"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name = "NAME"
+          type = "VARCHAR(255)"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  
-  column {
-    name = "NAME"
-    type = "VARCHAR(255)"
-  }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="considerations-2"><a class="header" href="#considerations-2">Considerations</a></h3>
 <ul>
-<li>Table must reference existing database and schema</li>
+<li>Table must reference existing database and schema (use module outputs)</li>
 <li>Choose appropriate data types</li>
 <li>Consider nullable constraints</li>
 <li>Add comments for documentation</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
 <h2 id="adding-a-new-view"><a class="header" href="#adding-a-new-view">Adding a New View</a></h2>
 <h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "NEW_VIEW" {
-  database  = snowflake_database.NEW_DATABASE.name
-  schema    = snowflake_schema.NEW_SCHEMA.name
-  name      = "NEW_VIEW"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      ID,
-      NAME
-    FROM NEW_TABLE
-    WHERE ACTIVE = TRUE;
-  SQL
-  comment   = "Description of the view"
-  depends_on = [snowflake_table.NEW_TABLE]
+<p>Add to the <code>view_map</code> in the <code>ALL_VIEWS</code> module:</p>
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
   
-  provider = snowflake.snowflake_sysadmin
+  view_map = {
+    # ... existing views ...
+    "NEW_VIEW" = {
+      database_name = module.ALL_DATABASES.DATABASES.NEW_DATABASE.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.NEW_SCHEMA.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          ID,
+          NAME
+        FROM ${module.ALL_TABLES.TABLES.NEW_TABLE.name}
+        WHERE ACTIVE = TRUE;
+      SQL
+      comment       = "Description of the view"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="considerations-3"><a class="header" href="#considerations-3">Considerations</a></h3>
 <ul>
-<li>View must reference existing database and schema</li>
+<li>View must reference existing database and schema (use module outputs)</li>
 <li>SQL statement must be valid</li>
-<li>Add <code>depends_on</code> for referenced tables</li>
-<li>Consider <code>is_secure</code> for sensitive queries</li>
+<li>Reference tables using module outputs when possible</li>
+<li>Grants are handled automatically via <code>role_privileges</code></li>
 </ul>
-<h2 id="adding-grants"><a class="header" href="#adding-grants">Adding Grants</a></h2>
-<h3 id="database-grant"><a class="header" href="#database-grant">Database Grant</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.NEW_DATABASE.name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="schema-grant"><a class="header" href="#schema-grant">Schema Grant</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
-  on_schema {
-    schema_name = snowflake_schema.NEW_SCHEMA.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="table-grant"><a class="header" href="#table-grant">Table Grant</a></h3>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.NEW_TABLE.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
+<h2 id="note-on-grants"><a class="header" href="#note-on-grants">Note on Grants</a></h2>
+<p><strong>All grants are now handled automatically within modules!</strong> You no longer need separate grant resources. Simply include <code>role_privileges</code> in the module configuration for databases, schemas, tables, views, and warehouses.</p>
 <h2 id="adding-resources-to-modules"><a class="header" href="#adding-resources-to-modules">Adding Resources to Modules</a></h2>
 <h3 id="adding-a-role"><a class="header" href="#adding-a-role">Adding a Role</a></h3>
 <p>Edit the <code>role_map</code> in the <code>ALL_ROLES</code> module:</p>
@@ -346,126 +364,123 @@ terraform plan
 }
 </code></pre>
 <h2 id="complete-example-adding-a-new-data-domain"><a class="header" href="#complete-example-adding-a-new-data-domain">Complete Example: Adding a New Data Domain</a></h2>
-<p>This example shows adding a complete data domain (database, schema, table, view, and grants):</p>
+<p>This example shows adding a complete data domain using modules (database, schema, table, view, with automatic grants):</p>
 <h3 id="1-add-database"><a class="header" href="#1-add-database">1. Add Database</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "SALES_DB" {
-  name                        = "SALES_DB"
-  comment                     = "Sales database"
-  data_retention_time_in_days = 30
-  provider                    = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "SALES_DB" = {
+      comment                     = "Sales database"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="2-add-schema"><a class="header" href="#2-add-schema">2. Add Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "ORDERS" {
-  name     = "ORDERS"
-  database = snowflake_database.SALES_DB.name
-  comment  = "Orders schema"
-  provider = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "ORDERS" = {
+      database_name       = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "Orders schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="3-add-table"><a class="header" href="#3-add-table">3. Add Table</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "ORDER_ITEMS" {
-  database = snowflake_database.SALES_DB.name
-  schema   = snowflake_schema.ORDERS.name
-  name     = "ORDER_ITEMS"
-  comment  = "Order items table"
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ORDER_ITEM_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
+  table_map = {
+    # ... existing tables ...
+    "ORDER_ITEMS" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ORDERS.name
+      comment       = "Order items table"
+      columns = [
+        {
+          name     = "ORDER_ITEM_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "ORDER_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "PRODUCT_ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+        },
+        {
+          name     = "QUANTITY"
+          type     = "NUMBER(10,0)"
+          nullable = false
+        },
+        {
+          name     = "PRICE"
+          type     = "NUMBER(10,2)"
+          nullable = false
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT", "INSERT", "UPDATE"]
+        }
+      ]
+    }
   }
-  
-  column {
-    name     = "ORDER_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "PRODUCT_ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "QUANTITY"
-    type     = "NUMBER(10,0)"
-    nullable = false
-  }
-  
-  column {
-    name     = "PRICE"
-    type     = "NUMBER(10,2)"
-    nullable = false
-  }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h3 id="4-add-view"><a class="header" href="#4-add-view">4. Add View</a></h3>
-<pre><code class="language-hcl">resource "snowflake_view" "ORDER_SUMMARY" {
-  database  = snowflake_database.SALES_DB.name
-  schema    = snowflake_schema.ORDERS.name
-  name      = "ORDER_SUMMARY"
-  statement = &lt;&lt;-SQL
-    SELECT 
-      ORDER_ID,
-      COUNT(*) AS ITEM_COUNT,
-      SUM(PRICE * QUANTITY) AS TOTAL_AMOUNT
-    FROM ORDER_ITEMS
-    GROUP BY ORDER_ID;
-  SQL
-  comment   = "Order summary view"
-  depends_on = [snowflake_table.ORDER_ITEMS]
+<pre><code class="language-hcl">module "ALL_VIEWS" {
+  source = "./modules/snowflake/views"
   
-  provider = snowflake.snowflake_sysadmin
+  view_map = {
+    # ... existing views ...
+    "ORDER_SUMMARY" = {
+      database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.ORDERS.name
+      statement     = &lt;&lt;-SQL
+        SELECT 
+          ORDER_ID,
+          COUNT(*) AS ITEM_COUNT,
+          SUM(PRICE * QUANTITY) AS TOTAL_AMOUNT
+        FROM ${module.ALL_TABLES.TABLES.ORDER_ITEMS.name}
+        GROUP BY ORDER_ID;
+      SQL
+      comment       = "Order summary view"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
-<h3 id="5-add-grants"><a class="header" href="#5-add-grants">5. Add Grants</a></h3>
-<pre><code class="language-hcl"># Database grant
-resource "snowflake_grant_privileges_to_account_role" "SALES_DB_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_account_object {
-    object_type = "DATABASE"
-    object_name = snowflake_database.SALES_DB.name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Schema grant
-resource "snowflake_grant_privileges_to_account_role" "ORDERS_SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_schema {
-    schema_name = snowflake_schema.ORDERS.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# Table grant
-resource "snowflake_grant_privileges_to_account_role" "ORDER_ITEMS_TABLE_GRANT" {
-  privileges        = ["SELECT", "INSERT", "UPDATE"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_schema_object {
-    object_type = "TABLE"
-    object_name = snowflake_table.ORDER_ITEMS.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-
-# View grant
-resource "snowflake_grant_privileges_to_account_role" "ORDER_SUMMARY_VIEW_GRANT" {
-  privileges        = ["SELECT"]
-  account_role_name = module.ALL_ROLES.ROLES.SALES.name
-  on_schema_object {
-    object_type = "VIEW"
-    object_name = snowflake_view.ORDER_SUMMARY.fully_qualified_name
-  }
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
+<p><strong>Note:</strong> All grants are automatically handled by the modules - no separate grant resources needed!</p>
 <h2 id="importing-existing-resources"><a class="header" href="#importing-existing-resources">Importing Existing Resources</a></h2>
 <p>If a resource already exists in Snowflake, import it:</p>
 <pre><code class="language-bash"># Import database

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Schemas - Snowflake Terraform Infrastructure Documentation</title>
+        <title>Schema Module - Snowflake Terraform Infrastructure Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -154,70 +154,129 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="schemas"><a class="header" href="#schemas">Schemas</a></h1>
-<p>This document explains how schemas are created and managed in the Terraform configuration.</p>
+                        <h1 id="schema-module"><a class="header" href="#schema-module">Schema Module</a></h1>
+<p>The Schema module manages Snowflake database schemas with automatic privilege grant management.</p>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
-<p>Schemas in Snowflake are containers within databases that hold tables, views, and other objects. The configuration creates schemas directly in the root <code>main.tf</code> file.</p>
-<h2 id="resource-definition"><a class="header" href="#resource-definition">Resource Definition</a></h2>
+<p>The Schema module (<code>modules/snowflake/schema</code>) creates Snowflake schemas within databases and automatically grants privileges to specified roles. This module provides a complete solution for schema management including access control.</p>
+<h2 id="module-location"><a class="header" href="#module-location">Module Location</a></h2>
+<pre><code>modules/snowflake/schema/
+├── main.tf        # Schema resource definitions and grants
+├── variables.tf   # Input variables
+└── outputs.tf     # Output values
+</code></pre>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
 <h3 id="basic-schema"><a class="header" href="#basic-schema">Basic Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "ADS" {
-  name     = "ADS"
-  database = snowflake_database.TEST_DB.name
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="schema-with-all-options"><a class="header" href="#schema-with-all-options">Schema with All Options</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "ADS" {
-  name                        = "ADS"
-  database                    = snowflake_database.TEST_DB.name
-  with_managed_access         = true
-  is_transient                = true
-  comment                     = "Schema for ads data"
-  data_retention_time_in_days = 1
-  provider                    = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h2 id="resource-properties"><a class="header" href="#resource-properties">Resource Properties</a></h2>
-<h3 id="required-properties"><a class="header" href="#required-properties">Required Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>name</code></td><td><code>string</code></td><td>Name of the schema</td></tr>
-<tr><td><code>database</code></td><td><code>string</code></td><td>Name of the parent database</td></tr>
-</tbody></table>
-</div>
-<h3 id="optional-properties"><a class="header" href="#optional-properties">Optional Properties</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>comment</code></td><td><code>string</code></td><td><code>null</code></td><td>Comment describing the schema</td></tr>
-<tr><td><code>with_managed_access</code></td><td><code>bool</code></td><td><code>false</code></td><td>Enable managed access (object-level security)</td></tr>
-<tr><td><code>is_transient</code></td><td><code>bool</code></td><td><code>false</code></td><td>Whether schema is transient (no Time Travel)</td></tr>
-<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
-<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
-</tbody></table>
-</div>
-<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
-<h3 id="simple-schema"><a class="header" href="#simple-schema">Simple Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "MY_SCHEMA" {
-  name     = "MY_SCHEMA"
-  database = snowflake_database.MY_DB.name
-  provider = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "MY_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.MY_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "My schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="schema-with-managed-access"><a class="header" href="#schema-with-managed-access">Schema with Managed Access</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "SECURE_SCHEMA" {
-  name                = "SECURE_SCHEMA"
-  database            = snowflake_database.MY_DB.name
-  with_managed_access = true
-  comment             = "Schema with managed access for security"
-  provider            = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "SECURE_SCHEMA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.MY_DB.name
+      with_managed_access         = true
+      is_transient                = false
+      comment                     = "Schema with managed access for security"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
-<h3 id="transient-schema"><a class="header" href="#transient-schema">Transient Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "TEMP_SCHEMA" {
-  name         = "TEMP_SCHEMA"
-  database     = snowflake_database.MY_DB.name
-  is_transient = true
-  comment      = "Temporary schema without Time Travel"
-  provider     = snowflake.snowflake_sysadmin
+<h2 id="input-variables"><a class="header" href="#input-variables">Input Variables</a></h2>
+<h3 id="schema_map"><a class="header" href="#schema_map"><code>schema_map</code></a></h3>
+<p>Type: <code>map(object)</code><br />
+Required: Yes<br />
+Description: Map of schema names to schema configurations</p>
+<h4 id="schema-configuration-object"><a class="header" href="#schema-configuration-object">Schema Configuration Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>with_managed_access</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Enable managed access (object-level security)</td></tr>
+<tr><td><code>is_transient</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Whether schema is transient (no Time Travel)</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the schema</td></tr>
+<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td>No</td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h4 id="role-privilege-object"><a class="header" href="#role-privilege-object">Role Privilege Object</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Yes</td><td>Name of the role receiving privileges</td></tr>
+<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>Yes</td><td>List of privileges: “USAGE”, “MODIFY”, “CREATE TABLE”, “CREATE VIEW”, etc.</td></tr>
+</tbody></table>
+</div>
+<h2 id="resources-created"><a class="header" href="#resources-created">Resources Created</a></h2>
+<h3 id="snowflake_schemaschemas"><a class="header" href="#snowflake_schemaschemas"><code>snowflake_schema.SCHEMAS</code></a></h3>
+<p>Creates schemas using <code>for_each</code> over the <code>schema_map</code>.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>name</code>: Schema name (from map key)</li>
+<li><code>database</code>: Parent database name</li>
+<li><code>with_managed_access</code>: Managed access setting</li>
+<li><code>is_transient</code>: Transient setting</li>
+<li><code>comment</code>: Schema comment</li>
+<li><code>data_retention_time_in_days</code>: Time Travel retention</li>
+</ul>
+<h3 id="snowflake_grant_privileges_to_account_roleschema_grant"><a class="header" href="#snowflake_grant_privileges_to_account_roleschema_grant"><code>snowflake_grant_privileges_to_account_role.SCHEMA_GRANT</code></a></h3>
+<p>Automatically grants schema privileges to roles based on the <code>role_privileges</code> configuration.</p>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><code>account_role_name</code>: Role receiving privileges</li>
+<li><code>privileges</code>: List of privileges</li>
+<li><code>on_schema.schema_name</code>: Fully qualified schema name (database.schema)</li>
+<li><code>with_grant_option</code>: Whether grant includes grant option</li>
+</ul>
+<p><strong>Dependencies:</strong></p>
+<ul>
+<li>Depends on <code>snowflake_schema.SCHEMAS</code> to ensure schemas exist before granting</li>
+</ul>
+<h2 id="outputs"><a class="header" href="#outputs">Outputs</a></h2>
+<h3 id="schemas"><a class="header" href="#schemas"><code>SCHEMAS</code></a></h3>
+<p>Type: <code>map(object)</code></p>
+<p>A map of all created schema resources, keyed by schema name.</p>
+<p><strong>Example Output:</strong></p>
+<pre><code class="language-hcl">{
+  "MY_SCHEMA" = {
+    name    = "MY_SCHEMA"
+    database = "MY_DB"
+    # ... other attributes
+  }
 }
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl"># Reference a schema in tables module
+schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
 </code></pre>
 <h2 id="managed-access"><a class="header" href="#managed-access">Managed Access</a></h2>
 <p>When <code>with_managed_access = true</code>:</p>
@@ -228,11 +287,13 @@
 <li>Recommended for sensitive data</li>
 </ul>
 <p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_schema" "SECURE_SCHEMA" {
-  name                = "SECURE_SCHEMA"
-  database            = snowflake_database.MY_DB.name
-  with_managed_access = true
-  provider            = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">schema_map = {
+  "SECURE_SCHEMA" = {
+    database_name       = module.ALL_DATABASES.DATABASES.MY_DB.name
+    with_managed_access = true  # Enable managed access
+    is_transient        = false
+    # ... other configuration
+  }
 }
 </code></pre>
 <h2 id="transient-schemas"><a class="header" href="#transient-schemas">Transient Schemas</a></h2>
@@ -244,11 +305,12 @@
 <li>Use for temporary or non-critical data</li>
 </ul>
 <p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_schema" "TEMP_SCHEMA" {
-  name         = "TEMP_SCHEMA"
-  database     = snowflake_database.MY_DB.name
-  is_transient = true
-  provider     = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">schema_map = {
+  "TEMP_SCHEMA" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    is_transient  = true  # Transient schema
+    # ... other configuration
+  }
 }
 </code></pre>
 <h2 id="data-retention"><a class="header" href="#data-retention">Data Retention</a></h2>
@@ -258,46 +320,7 @@
 <li>Can override database retention</li>
 <li>Same retention limits as databases (1-90 days standard, up to 1 year enterprise)</li>
 </ul>
-<h2 id="provider-requirements"><a class="header" href="#provider-requirements">Provider Requirements</a></h2>
-<p>Schemas require the <code>snowflake_sysadmin</code> provider because:</p>
-<ul>
-<li>Creating schemas requires SYSADMIN privileges</li>
-<li>Schema management is a system administration task</li>
-</ul>
-<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
-<h3 id="required-dependencies"><a class="header" href="#required-dependencies">Required Dependencies</a></h3>
-<p>Schemas depend on databases:</p>
-<ul>
-<li>Must reference an existing database</li>
-<li>Database must be created before schema</li>
-</ul>
-<p><strong>Example:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_schema" "ADS" {
-  name     = "ADS"
-  database = snowflake_database.TEST_DB.name  # References database
-  provider = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="dependent-resources"><a class="header" href="#dependent-resources">Dependent Resources</a></h3>
-<p>The following resources depend on schemas:</p>
-<ul>
-<li>Tables (created within schemas)</li>
-<li>Views (created within schemas)</li>
-<li>Grants (granted on schemas)</li>
-</ul>
-<h2 id="granting-access"><a class="header" href="#granting-access">Granting Access</a></h2>
-<p>Schemas can be granted to roles for access control:</p>
-<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "SCHEMA_GRANT" {
-  privileges        = ["USAGE"]
-  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
-  on_schema {
-    schema_name = snowflake_schema.ADS.fully_qualified_name
-  }
-  with_grant_option = false
-  provider          = snowflake.snowflake_sysadmin
-}
-</code></pre>
-<h3 id="available-privileges"><a class="header" href="#available-privileges">Available Privileges</a></h3>
+<h2 id="available-privileges"><a class="header" href="#available-privileges">Available Privileges</a></h2>
 <ul>
 <li><strong>USAGE</strong>: Use the schema (required to access tables/views)</li>
 <li><strong>MODIFY</strong>: Modify schema settings</li>
@@ -315,18 +338,96 @@
 <li><strong>OWNERSHIP</strong>: Full ownership of the schema</li>
 <li><strong>ALL PRIVILEGES</strong>: All of the above</li>
 </ul>
-<h2 id="fully-qualified-names"><a class="header" href="#fully-qualified-names">Fully Qualified Names</a></h2>
-<p>Schemas have a <code>fully_qualified_name</code> attribute that includes the database:</p>
-<pre><code class="language-hcl"># Reference fully qualified name
-schema_name = snowflake_schema.ADS.fully_qualified_name
-# Results in: "TEST_DB.ADS"
-</code></pre>
-<p>Use <code>fully_qualified_name</code> when:</p>
+<h2 id="provider-requirements"><a class="header" href="#provider-requirements">Provider Requirements</a></h2>
+<p>The module requires the <code>snowflake_sysadmin</code> provider alias because:</p>
 <ul>
-<li>Granting privileges on schemas</li>
-<li>Referencing schemas in other resources</li>
-<li>Need database-qualified schema name</li>
+<li>Creating schemas requires SYSADMIN privileges</li>
+<li>Granting schema privileges requires SYSADMIN privileges</li>
 </ul>
+<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
+<h3 id="internal-dependencies"><a class="header" href="#internal-dependencies">Internal Dependencies</a></h3>
+<ul>
+<li><code>snowflake_grant_privileges_to_account_role.SCHEMA_GRANT</code> depends on <code>snowflake_schema.SCHEMAS</code></li>
+</ul>
+<h3 id="external-dependencies"><a class="header" href="#external-dependencies">External Dependencies</a></h3>
+<ul>
+<li><strong>Database Module</strong>: Schemas must reference existing databases</li>
+<li><strong>Roles Module</strong>: Schemas reference roles from the roles module for privilege grants</li>
+</ul>
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="simple-schema"><a class="header" href="#simple-schema">Simple Schema</a></h3>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "PUBLIC" = {
+      database_name       = module.ALL_DATABASES.DATABASES.MY_DB.name
+      with_managed_access = false
+      is_transient        = false
+      comment             = "Public schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="secure-schema-with-managed-access"><a class="header" href="#secure-schema-with-managed-access">Secure Schema with Managed Access</a></h3>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "SECURE_DATA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.PRODUCTION_DB.name
+      with_managed_access         = true
+      is_transient                = false
+      comment                     = "Secure schema with managed access"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+          privileges        = ["USAGE", "CREATE TABLE", "CREATE VIEW"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="transient-schema-for-temporary-data"><a class="header" href="#transient-schema-for-temporary-data">Transient Schema for Temporary Data</a></h3>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  schema_map = {
+    "TEMP_STAGING" = {
+      database_name       = module.ALL_DATABASES.DATABASES.STAGING_DB.name
+      with_managed_access = false
+      is_transient        = true
+      comment             = "Temporary staging schema"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+          privileges        = ["USAGE", "CREATE TABLE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
 <h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
 <ol>
 <li><strong>Descriptive Names</strong>: Use clear, descriptive schema names</li>
@@ -334,7 +435,8 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 <li><strong>Managed Access</strong>: Use managed access for sensitive data</li>
 <li><strong>Transient for Temp</strong>: Use transient for temporary data</li>
 <li><strong>Access Control</strong>: Grant USAGE to roles that need access</li>
-<li><strong>Naming Conventions</strong>: Follow consistent naming conventions</li>
+<li><strong>Minimal Privileges</strong>: Grant only necessary privileges</li>
+<li><strong>Database Reference</strong>: Always reference databases from the database module</li>
 </ol>
 <h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
 <h3 id="schema-already-exists"><a class="header" href="#schema-already-exists">Schema Already Exists</a></h3>
@@ -343,7 +445,7 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Import existing schema: <code>terraform import snowflake_schema.ADS "TEST_DB.ADS"</code></li>
+<li>Import existing schema: <code>terraform import module.ALL_SCHEMAS.snowflake_schema.SCHEMAS["SCHEMA_NAME"] "DB.SCHEMA"</code></li>
 <li>Or remove schema from Snowflake manually</li>
 <li>Or use a different schema name</li>
 </ul>
@@ -356,6 +458,7 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 <li>Ensure database is created before schema</li>
 <li>Verify database name is correct</li>
 <li>Check that database exists in Snowflake</li>
+<li>Reference database using module output: <code>module.ALL_DATABASES.DATABASES.DB_NAME.name</code></li>
 </ul>
 <h3 id="insufficient-privileges"><a class="header" href="#insufficient-privileges">Insufficient Privileges</a></h3>
 <p><strong>Error:</strong></p>
@@ -369,21 +472,21 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
 </ul>
 <h2 id="related-documentation"><a class="header" href="#related-documentation">Related Documentation</a></h2>
 <ul>
-<li><a href="databases.html">Databases</a> - Parent containers for schemas</li>
-<li><a href="tables.html">Tables</a> - Created within schemas</li>
-<li><a href="views.html">Views</a> - Created within schemas</li>
-<li><a href="grants.html">Grants and Privileges</a> - Granting schema access</li>
+<li><a href="database-module.html">Database Module</a> - Creates parent databases</li>
+<li><a href="roles-module.html">Roles Module</a> - Creates roles that receive schema privileges</li>
+<li><a href="tables-module.html">Tables Module</a> - Creates tables within schemas</li>
+<li><a href="views-module.html">Views Module</a> - Creates views within schemas</li>
 </ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../resources/databases.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../modules/database-module.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../resources/tables.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../modules/tables-module.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -393,11 +496,11 @@ schema_name = snowflake_schema.ADS.fully_qualified_name
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../resources/databases.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../modules/database-module.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../resources/tables.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../modules/tables-module.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

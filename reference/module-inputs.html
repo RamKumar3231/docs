@@ -405,6 +405,26 @@ module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
   snowflake = snowflake.snowflake_sysadmin
 }
 </code></pre>
+<h3 id="database-module"><a class="header" href="#database-module">Database Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="schema-module"><a class="header" href="#schema-module">Schema Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="tables-module"><a class="header" href="#tables-module">Tables Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="views-module"><a class="header" href="#views-module">Views Module</a></h3>
+<pre><code class="language-hcl">providers = {
+  snowflake = snowflake.snowflake_sysadmin
+}
+</code></pre>
 <h2 id="common-patterns"><a class="header" href="#common-patterns">Common Patterns</a></h2>
 <h3 id="referencing-module-outputs"><a class="header" href="#referencing-module-outputs">Referencing Module Outputs</a></h3>
 <pre><code class="language-hcl"># Reference roles
@@ -412,6 +432,18 @@ roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
 
 # Reference warehouses
 default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
+
+# Reference databases
+database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+
+# Reference schemas
+schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+
+# Reference tables
+table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
+
+# Reference views
+view_name = module.ALL_VIEWS.VIEWS.MY_VIEW.name
 </code></pre>
 <h3 id="conditional-configuration"><a class="header" href="#conditional-configuration">Conditional Configuration</a></h3>
 <pre><code class="language-hcl"># Conditional role assignment
@@ -430,6 +462,173 @@ warehouse_map = {
   }
 }
 </code></pre>
+<h2 id="database-module-1"><a class="header" href="#database-module-1">Database Module</a></h2>
+<h3 id="inputs-3"><a class="header" href="#inputs-3">Inputs</a></h3>
+<h4 id="database_map"><a class="header" href="#database_map"><code>database_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of database names to database configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">database_map = {
+  "DATABASE_NAME" = {
+    comment                     = "Database description"  # Optional
+    data_retention_time_in_days = 1                       # Optional, default: 1
+    role_privileges = [                                    # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the database</td></tr>
+<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td>No</td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-3"><a class="header" href="#outputs-3">Outputs</a></h3>
+<h4 id="databases"><a class="header" href="#databases"><code>DATABASES</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created database resources, keyed by database name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_DATABASES.DATABASES.DATABASE_NAME
+</code></pre>
+<h2 id="schema-module-1"><a class="header" href="#schema-module-1">Schema Module</a></h2>
+<h3 id="inputs-4"><a class="header" href="#inputs-4">Inputs</a></h3>
+<h4 id="schema_map"><a class="header" href="#schema_map"><code>schema_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of schema names to schema configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">schema_map = {
+  "SCHEMA_NAME" = {
+    database_name               = "DATABASE_NAME"  # Required
+    with_managed_access         = false            # Required
+    is_transient                = false            # Required
+    comment                     = "Schema description"  # Optional
+    data_retention_time_in_days = 1                    # Optional, default: 1
+    role_privileges = [                                 # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>with_managed_access</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Enable managed access (object-level security)</td></tr>
+<tr><td><code>is_transient</code></td><td><code>bool</code></td><td>Yes</td><td>-</td><td>Whether schema is transient (no Time Travel)</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the schema</td></tr>
+<tr><td><code>data_retention_time_in_days</code></td><td><code>number</code></td><td>No</td><td><code>1</code></td><td>Number of days to retain data (Time Travel)</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-4"><a class="header" href="#outputs-4">Outputs</a></h3>
+<h4 id="schemas"><a class="header" href="#schemas"><code>SCHEMAS</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created schema resources, keyed by schema name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_SCHEMAS.SCHEMAS.SCHEMA_NAME
+</code></pre>
+<h2 id="tables-module-1"><a class="header" href="#tables-module-1">Tables Module</a></h2>
+<h3 id="inputs-5"><a class="header" href="#inputs-5">Inputs</a></h3>
+<h4 id="table_map"><a class="header" href="#table_map"><code>table_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of table names to table configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">table_map = {
+  "TABLE_NAME" = {
+    database_name = "DATABASE_NAME"  # Required
+    schema_name   = "SCHEMA_NAME"    # Required
+    comment       = "Table description"  # Optional
+    columns = [                         # Required
+      {
+        name     = "COLUMN_NAME"
+        type     = "VARCHAR(255)"
+        nullable = true   # Optional, default: true
+        comment  = "Column description"  # Optional
+      }
+    ]
+    role_privileges = [  # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["SELECT"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>schema_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent schema</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the table</td></tr>
+<tr><td><code>columns</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of column definitions</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-5"><a class="header" href="#outputs-5">Outputs</a></h3>
+<h4 id="tables"><a class="header" href="#tables"><code>TABLES</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created table resources, keyed by table name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_TABLES.TABLES.TABLE_NAME
+</code></pre>
+<h2 id="views-module-1"><a class="header" href="#views-module-1">Views Module</a></h2>
+<h3 id="inputs-6"><a class="header" href="#inputs-6">Inputs</a></h3>
+<h4 id="view_map"><a class="header" href="#view_map"><code>view_map</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Required:</strong> Yes<br />
+<strong>Description:</strong> Map of view names to view configurations</p>
+<p><strong>Structure:</strong></p>
+<pre><code class="language-hcl">view_map = {
+  "VIEW_NAME" = {
+    database_name = "DATABASE_NAME"  # Required
+    schema_name   = "SCHEMA_NAME"    # Required
+    statement     = "SELECT ..."     # Required
+    comment       = "View description"  # Optional
+    depends_on    = []                  # Optional
+    role_privileges = [                 # Required
+      {
+        account_role_name = "ROLE_NAME"
+        privileges        = ["SELECT"]
+      }
+    ]
+    with_grant_option = false  # Optional, default: false
+  }
+}
+</code></pre>
+<p><strong>Field Details:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>database_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent database</td></tr>
+<tr><td><code>schema_name</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>Name of the parent schema</td></tr>
+<tr><td><code>statement</code></td><td><code>string</code></td><td>Yes</td><td>-</td><td>SQL SELECT statement defining the view</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td><code>""</code></td><td>Comment describing the view</td></tr>
+<tr><td><code>depends_on</code></td><td><code>list(string)</code></td><td>No</td><td><code>[]</code></td><td>Optional list of dependent resource addresses</td></tr>
+<tr><td><code>role_privileges</code></td><td><code>list(object)</code></td><td>Yes</td><td>-</td><td>List of role privilege grants</td></tr>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td>No</td><td><code>false</code></td><td>Whether grants include grant option</td></tr>
+</tbody></table>
+</div>
+<h3 id="outputs-6"><a class="header" href="#outputs-6">Outputs</a></h3>
+<h4 id="views"><a class="header" href="#views"><code>VIEWS</code></a></h4>
+<p><strong>Type:</strong> <code>map(object)</code><br />
+<strong>Description:</strong> Map of all created view resources, keyed by view name</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-hcl">module.ALL_VIEWS.VIEWS.VIEW_NAME
+</code></pre>
 <h2 id="related-documentation"><a class="header" href="#related-documentation">Related Documentation</a></h2>
 <ul>
 <li><a href="variables.html">Variables Reference</a> - Root module variables</li>
@@ -437,6 +636,10 @@ warehouse_map = {
 <li><a href="../modules/roles-module.html">Roles Module</a> - Detailed roles module documentation</li>
 <li><a href="../modules/users-module.html">Users Module</a> - Detailed users module documentation</li>
 <li><a href="../modules/warehouse-module.html">Warehouse Module</a> - Detailed warehouse module documentation</li>
+<li><a href="../modules/database-module.html">Database Module</a> - Detailed database module documentation</li>
+<li><a href="../modules/schema-module.html">Schema Module</a> - Detailed schema module documentation</li>
+<li><a href="../modules/tables-module.html">Tables Module</a> - Detailed tables module documentation</li>
+<li><a href="../modules/views-module.html">Views Module</a> - Detailed views module documentation</li>
 </ul>
 
                     </main>
