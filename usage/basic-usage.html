@@ -1,0 +1,569 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Basic Usage - Snowflake Terraform Infrastructure Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Comprehensive documentation for managing Snowflake infrastructure using Terraform">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Snowflake Terraform Infrastructure Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="basic-usage"><a class="header" href="#basic-usage">Basic Usage</a></h1>
+<p>This guide provides practical examples of common operations with the Terraform Snowflake infrastructure.</p>
+<h2 id="common-workflows"><a class="header" href="#common-workflows">Common Workflows</a></h2>
+<h3 id="1-adding-a-new-role"><a class="header" href="#1-adding-a-new-role">1. Adding a New Role</a></h3>
+<p>To add a new role to your infrastructure:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add the role to the <code>role_map</code>:</li>
+</ol>
+<pre><code class="language-hcl">module "ALL_ROLES" {
+  source = "./modules/snowflake/roles"
+  
+  providers = {
+    snowflake = snowflake.snowflake_securityadmin
+  }
+  
+  role_map = {
+    # ... existing roles ...
+    "NEW_ROLE" = {
+      parent_role_name = "SYSADMIN"
+      comment          = "Description of the new role"
+    }
+  }
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan the changes</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+</code></pre>
+<ol start="3">
+<li><strong>Apply the changes</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform apply
+</code></pre>
+<h3 id="2-adding-a-new-user"><a class="header" href="#2-adding-a-new-user">2. Adding a New User</a></h3>
+<p>To add a new user:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add the user to the <code>user_map</code>:</li>
+</ol>
+<pre><code class="language-hcl">module "ALL_USERS" {
+  source = "./modules/snowflake/users"
+  
+  providers = {
+    snowflake = snowflake.snowflake_securityadmin
+  }
+  
+  user_map = {
+    # ... existing users ...
+    "NEW_USER" = {
+      first_name  = "New"
+      last_name   = "User"
+      email       = "new.user@example.com"
+      user_type   = "person"
+      roles_to_assign = [module.ALL_ROLES.ROLES.NEW_ROLE.name]
+    }
+  }
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan and apply</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+terraform apply
+</code></pre>
+<h3 id="3-adding-a-new-warehouse"><a class="header" href="#3-adding-a-new-warehouse">3. Adding a New Warehouse</a></h3>
+<p>To add a new warehouse:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add the warehouse to the <code>warehouse_map</code>:</li>
+</ol>
+<pre><code class="language-hcl">module "ALL_WAREHOUSES" {
+  source = "./modules/snowflake/warehouse"
+  
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  warehouse_map = {
+    # ... existing warehouses ...
+    "NEW_WAREHOUSE" = {
+      warehouse_type = "STANDARD"
+      warehouse_generation = "2"
+      warehouse_size = "SMALL"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan and apply</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+terraform apply
+</code></pre>
+<h3 id="4-adding-a-new-database"><a class="header" href="#4-adding-a-new-database">4. Adding a New Database</a></h3>
+<p>To add a new database:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add the database resource:</li>
+</ol>
+<pre><code class="language-hcl">resource "snowflake_database" "NEW_DB" {
+  name                        = "NEW_DB"
+  comment                     = "New database"
+  data_retention_time_in_days = 1
+  provider                    = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan and apply</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+terraform apply
+</code></pre>
+<h3 id="5-adding-a-new-table"><a class="header" href="#5-adding-a-new-table">5. Adding a New Table</a></h3>
+<p>To add a new table:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add the table resource:</li>
+</ol>
+<pre><code class="language-hcl">resource "snowflake_table" "NEW_TABLE" {
+  database = snowflake_database.NEW_DB.name
+  schema   = snowflake_schema.PUBLIC.name
+  name     = "NEW_TABLE"
+  comment  = "New table"
+  
+  column {
+    name     = "ID"
+    type     = "NUMBER(38,0)"
+    nullable = false
+  }
+  
+  column {
+    name = "NAME"
+    type = "VARCHAR(255)"
+  }
+  
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan and apply</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+terraform apply
+</code></pre>
+<h3 id="6-granting-access-to-a-role"><a class="header" href="#6-granting-access-to-a-role">6. Granting Access to a Role</a></h3>
+<p>To grant access to a role:</p>
+<ol>
+<li><strong>Edit <code>main.tf</code></strong> and add grant resources:</li>
+</ol>
+<pre><code class="language-hcl"># Grant database access
+resource "snowflake_grant_privileges_to_account_role" "ROLE_DB_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.NEW_DB.name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+# Grant schema access
+resource "snowflake_grant_privileges_to_account_role" "ROLE_SCHEMA_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
+  on_schema {
+    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+# Grant table access
+resource "snowflake_grant_privileges_to_account_role" "ROLE_TABLE_GRANT" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.NEW_ROLE.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.NEW_TABLE.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<ol start="2">
+<li><strong>Plan and apply</strong>:</li>
+</ol>
+<pre><code class="language-bash">terraform plan
+terraform apply
+</code></pre>
+<h2 id="terraform-commands"><a class="header" href="#terraform-commands">Terraform Commands</a></h2>
+<h3 id="initialize"><a class="header" href="#initialize">Initialize</a></h3>
+<pre><code class="language-bash">terraform init
+</code></pre>
+<p>Initializes Terraform and downloads providers. Run this:</p>
+<ul>
+<li>First time setting up the project</li>
+<li>After adding new providers</li>
+<li>After updating provider versions</li>
+</ul>
+<h3 id="validate"><a class="header" href="#validate">Validate</a></h3>
+<pre><code class="language-bash">terraform validate
+</code></pre>
+<p>Validates the Terraform configuration syntax. Run this:</p>
+<ul>
+<li>Before planning or applying</li>
+<li>After making configuration changes</li>
+<li>In CI/CD pipelines</li>
+</ul>
+<h3 id="format"><a class="header" href="#format">Format</a></h3>
+<pre><code class="language-bash">terraform fmt
+</code></pre>
+<p>Formats Terraform files to standard style. Run this:</p>
+<ul>
+<li>Before committing changes</li>
+<li>To ensure consistent formatting</li>
+</ul>
+<h3 id="plan"><a class="header" href="#plan">Plan</a></h3>
+<pre><code class="language-bash">terraform plan
+</code></pre>
+<p>Shows what changes Terraform will make. Always review before applying.</p>
+<h3 id="apply"><a class="header" href="#apply">Apply</a></h3>
+<pre><code class="language-bash">terraform apply
+</code></pre>
+<p>Applies the configuration and creates/updates resources.</p>
+<h3 id="destroy"><a class="header" href="#destroy">Destroy</a></h3>
+<pre><code class="language-bash">terraform destroy
+</code></pre>
+<p><strong>Warning:</strong> Destroys all resources managed by Terraform. Use with caution!</p>
+<h3 id="state-management"><a class="header" href="#state-management">State Management</a></h3>
+<pre><code class="language-bash"># List all resources in state
+terraform state list
+
+# Show details of a resource
+terraform state show module.ALL_ROLES.snowflake_account_role.ROLES["ANALYST"]
+
+# Remove a resource from state (doesn't delete from Snowflake)
+terraform state rm module.ALL_ROLES.snowflake_account_role.ROLES["ANALYST"]
+
+# Import an existing resource
+terraform import snowflake_database.MY_DB "MY_DB"
+</code></pre>
+<h2 id="working-with-modules"><a class="header" href="#working-with-modules">Working with Modules</a></h2>
+<h3 id="viewing-module-outputs"><a class="header" href="#viewing-module-outputs">Viewing Module Outputs</a></h3>
+<p>Module outputs are available for reference in other resources:</p>
+<pre><code class="language-hcl"># Reference a role from the roles module
+roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
+
+# Reference a warehouse from the warehouse module
+default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
+</code></pre>
+<h3 id="viewing-all-outputs"><a class="header" href="#viewing-all-outputs">Viewing All Outputs</a></h3>
+<pre><code class="language-bash">terraform output
+</code></pre>
+<p>View specific output:</p>
+<pre><code class="language-bash">terraform output ALL_ROLES
+</code></pre>
+<h2 id="common-patterns"><a class="header" href="#common-patterns">Common Patterns</a></h2>
+<h3 id="pattern-1-complete-user-setup"><a class="header" href="#pattern-1-complete-user-setup">Pattern 1: Complete User Setup</a></h3>
+<p>Create a user with role, warehouse, and database access:</p>
+<pre><code class="language-hcl"># 1. Role (in role_map)
+"ANALYST" = {
+  parent_role_name = "SYSADMIN"
+  comment          = "Analyst role"
+}
+
+# 2. Warehouse (in warehouse_map)
+"ANALYST_WH" = {
+  warehouse_type = "STANDARD"
+  warehouse_generation = "2"
+  warehouse_size = "SMALL"
+  role_privileges = [
+    {
+      account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+      privileges        = ["USAGE"]
+    }
+  ]
+}
+
+# 3. User (in user_map)
+"ANALYST_USER" = {
+  first_name       = "Analyst"
+  last_name        = "User"
+  email            = "analyst@example.com"
+  user_type        = "person"
+  default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.ANALYST_WH.name
+  default_role     = module.ALL_ROLES.ROLES.ANALYST.name
+  roles_to_assign  = [module.ALL_ROLES.ROLES.ANALYST.name]
+}
+
+# 4. Database grant
+resource "snowflake_grant_privileges_to_account_role" "ANALYST_DB_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.MY_DB.name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="pattern-2-read-only-access"><a class="header" href="#pattern-2-read-only-access">Pattern 2: Read-Only Access</a></h3>
+<p>Grant read-only access to a role:</p>
+<pre><code class="language-hcl"># Database USAGE
+resource "snowflake_grant_privileges_to_account_role" "READONLY_DB" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.MY_DB.name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+# Schema USAGE
+resource "snowflake_grant_privileges_to_account_role" "READONLY_SCHEMA" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+  on_schema {
+    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+# Table SELECT (read-only)
+resource "snowflake_grant_privileges_to_account_role" "READONLY_TABLE" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="troubleshooting-common-issues"><a class="header" href="#troubleshooting-common-issues">Troubleshooting Common Issues</a></h2>
+<h3 id="issue-resource-already-exists"><a class="header" href="#issue-resource-already-exists">Issue: Resource Already Exists</a></h3>
+<p><strong>Solution:</strong> Import the existing resource:</p>
+<pre><code class="language-bash">terraform import snowflake_database.MY_DB "MY_DB"
+</code></pre>
+<h3 id="issue-dependency-error"><a class="header" href="#issue-dependency-error">Issue: Dependency Error</a></h3>
+<p><strong>Solution:</strong> Ensure resources are created in the correct order. Use <code>depends_on</code> if needed:</p>
+<pre><code class="language-hcl">resource "snowflake_view" "MY_VIEW" {
+  # ... configuration ...
+  depends_on = [snowflake_table.MY_TABLE]
+}
+</code></pre>
+<h3 id="issue-invalid-reference"><a class="header" href="#issue-invalid-reference">Issue: Invalid Reference</a></h3>
+<p><strong>Solution:</strong> Verify module outputs are referenced correctly:</p>
+<pre><code class="language-hcl"># Correct
+roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
+
+# Incorrect
+roles_to_assign = [module.ALL_ROLES.ANALYST]  # Missing .ROLES and .name
+</code></pre>
+<h2 id="next-steps"><a class="header" href="#next-steps">Next Steps</a></h2>
+<ul>
+<li>Learn about <a href="customizing-configuration.html">Customizing Configuration</a></li>
+<li>Review <a href="best-practices.html">Best Practices</a></li>
+<li>See <a href="adding-new-resources.html">Adding New Resources</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../resources/grants.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../usage/customizing-configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../resources/grants.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../usage/customizing-configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

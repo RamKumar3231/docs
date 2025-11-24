@@ -1,0 +1,598 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Grants and Privileges - Snowflake Terraform Infrastructure Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Comprehensive documentation for managing Snowflake infrastructure using Terraform">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Snowflake Terraform Infrastructure Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="grants-and-privileges"><a class="header" href="#grants-and-privileges">Grants and Privileges</a></h1>
+<p>This document explains how privileges are granted to roles on various Snowflake objects in the Terraform configuration.</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>Grants in Snowflake control access to objects by assigning privileges to roles. The configuration uses <code>snowflake_grant_privileges_to_account_role</code> resources to grant privileges on databases, schemas, tables, views, and warehouses.</p>
+<h2 id="grant-resource"><a class="header" href="#grant-resource">Grant Resource</a></h2>
+<h3 id="basic-grant-structure"><a class="header" href="#basic-grant-structure">Basic Grant Structure</a></h3>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "GRANT_NAME" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.ROLE_NAME.name
+  
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.TEST_DB.name
+  }
+  
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="grant-properties"><a class="header" href="#grant-properties">Grant Properties</a></h2>
+<h3 id="required-properties"><a class="header" href="#required-properties">Required Properties</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>privileges</code></td><td><code>list(string)</code></td><td>List of privileges to grant</td></tr>
+<tr><td><code>account_role_name</code></td><td><code>string</code></td><td>Name of the role receiving privileges</td></tr>
+</tbody></table>
+</div>
+<h3 id="object-specification"><a class="header" href="#object-specification">Object Specification</a></h3>
+<p>One of the following must be specified:</p>
+<h4 id="account-object"><a class="header" href="#account-object">Account Object</a></h4>
+<pre><code class="language-hcl">on_account_object {
+  object_type = "DATABASE" | "WAREHOUSE" | "INTEGRATION" | ...
+  object_name = "OBJECT_NAME"
+}
+</code></pre>
+<h4 id="schema-object"><a class="header" href="#schema-object">Schema Object</a></h4>
+<pre><code class="language-hcl">on_schema {
+  schema_name = "DATABASE.SCHEMA"  # or fully_qualified_name
+}
+</code></pre>
+<h4 id="schema-object-specific-object"><a class="header" href="#schema-object-specific-object">Schema Object (Specific Object)</a></h4>
+<pre><code class="language-hcl">on_schema_object {
+  object_type = "TABLE" | "VIEW" | "FUNCTION" | ...
+  object_name = "DATABASE.SCHEMA.OBJECT"  # or fully_qualified_name
+}
+</code></pre>
+<h3 id="optional-properties"><a class="header" href="#optional-properties">Optional Properties</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>with_grant_option</code></td><td><code>bool</code></td><td><code>false</code></td><td>Whether grant includes grant option</td></tr>
+<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
+</tbody></table>
+</div>
+<h2 id="database-grants"><a class="header" href="#database-grants">Database Grants</a></h2>
+<h3 id="grant-usage-on-database"><a class="header" href="#grant-usage-on-database">Grant USAGE on Database</a></h3>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "MARKETING_TEST_DB_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.TEST_DB.name
+  }
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="available-database-privileges"><a class="header" href="#available-database-privileges">Available Database Privileges</a></h3>
+<ul>
+<li><strong>USAGE</strong>: Use the database (required to access schemas/tables)</li>
+<li><strong>MODIFY</strong>: Modify database settings</li>
+<li><strong>CREATE SCHEMA</strong>: Create schemas in the database</li>
+<li><strong>MONITOR</strong>: View database usage and metrics</li>
+<li><strong>OWNERSHIP</strong>: Full ownership of the database</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
+<h2 id="schema-grants"><a class="header" href="#schema-grants">Schema Grants</a></h2>
+<h3 id="grant-usage-on-schema"><a class="header" href="#grant-usage-on-schema">Grant USAGE on Schema</a></h3>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "MARKETING_ADS_SCHEMA_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+  on_schema {
+    schema_name = snowflake_schema.ADS.fully_qualified_name
+  }
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="available-schema-privileges"><a class="header" href="#available-schema-privileges">Available Schema Privileges</a></h3>
+<ul>
+<li><strong>USAGE</strong>: Use the schema (required to access tables/views)</li>
+<li><strong>MODIFY</strong>: Modify schema settings</li>
+<li><strong>CREATE TABLE</strong>: Create tables in the schema</li>
+<li><strong>CREATE VIEW</strong>: Create views in the schema</li>
+<li><strong>CREATE FILE FORMAT</strong>: Create file formats</li>
+<li><strong>CREATE STAGE</strong>: Create stages</li>
+<li><strong>CREATE FUNCTION</strong>: Create functions</li>
+<li><strong>CREATE PROCEDURE</strong>: Create procedures</li>
+<li><strong>CREATE SEQUENCE</strong>: Create sequences</li>
+<li><strong>CREATE TASK</strong>: Create tasks</li>
+<li><strong>CREATE PIPE</strong>: Create pipes</li>
+<li><strong>CREATE STREAM</strong>: Create streams</li>
+<li><strong>MONITOR</strong>: View schema usage and metrics</li>
+<li><strong>OWNERSHIP</strong>: Full ownership of the schema</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
+<h2 id="table-grants"><a class="header" href="#table-grants">Table Grants</a></h2>
+<h3 id="grant-select-on-table"><a class="header" href="#grant-select-on-table">Grant SELECT on Table</a></h3>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "FACEBOOK_ADS_TABLE_SELECT_GRANT" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+  }
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="available-table-privileges"><a class="header" href="#available-table-privileges">Available Table Privileges</a></h3>
+<ul>
+<li><strong>SELECT</strong>: Query the table</li>
+<li><strong>INSERT</strong>: Insert rows into the table</li>
+<li><strong>UPDATE</strong>: Update rows in the table</li>
+<li><strong>DELETE</strong>: Delete rows from the table</li>
+<li><strong>TRUNCATE</strong>: Truncate the table</li>
+<li><strong>REFERENCES</strong>: Reference the table in foreign keys</li>
+<li><strong>OWNERSHIP</strong>: Full ownership of the table</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
+<h3 id="grant-multiple-privileges"><a class="header" href="#grant-multiple-privileges">Grant Multiple Privileges</a></h3>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_FULL_GRANT" {
+  privileges        = ["SELECT", "INSERT", "UPDATE", "DELETE"]
+  account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+  }
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="view-grants"><a class="header" href="#view-grants">View Grants</a></h2>
+<h3 id="grant-select-on-view"><a class="header" href="#grant-select-on-view">Grant SELECT on View</a></h3>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "AGG_FACEBOOK_ADS_VIEW_SELECT_GRANT" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+  on_schema_object {
+    object_type = "VIEW"
+    object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
+  }
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="available-view-privileges"><a class="header" href="#available-view-privileges">Available View Privileges</a></h3>
+<ul>
+<li><strong>SELECT</strong>: Query the view</li>
+<li><strong>REFERENCES</strong>: Reference the view in other objects</li>
+<li><strong>OWNERSHIP</strong>: Full ownership of the view</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
+<p><strong>Note:</strong> Views are read-only, so INSERT, UPDATE, DELETE privileges are not applicable.</p>
+<h2 id="warehouse-grants"><a class="header" href="#warehouse-grants">Warehouse Grants</a></h2>
+<p>Warehouse privileges are typically managed within the warehouse module, but can also be granted directly:</p>
+<h3 id="grant-usage-on-warehouse"><a class="header" href="#grant-usage-on-warehouse">Grant USAGE on Warehouse</a></h3>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "WAREHOUSE_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+  on_account_object {
+    object_type = "WAREHOUSE"
+    object_name = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
+  }
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="available-warehouse-privileges"><a class="header" href="#available-warehouse-privileges">Available Warehouse Privileges</a></h3>
+<ul>
+<li><strong>USAGE</strong>: Use the warehouse for queries</li>
+<li><strong>OPERATE</strong>: Resume/suspend the warehouse</li>
+<li><strong>MODIFY</strong>: Change warehouse settings</li>
+<li><strong>MONITOR</strong>: View warehouse usage and metrics</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
+<h2 id="grant-option"><a class="header" href="#grant-option">Grant Option</a></h2>
+<p>The <code>with_grant_option</code> property allows the grantee to grant the same privileges to other roles:</p>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "GRANT_WITH_OPTION" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.MANAGER.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+  }
+  with_grant_option = true  # Manager can grant SELECT to others
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<p><strong>Use Cases:</strong></p>
+<ul>
+<li>Delegating privilege management</li>
+<li>Allowing role administrators to manage access</li>
+<li>Flexible access control</li>
+</ul>
+<p><strong>Security Consideration:</strong></p>
+<ul>
+<li>Use carefully as it allows privilege escalation</li>
+<li>Typically used for administrative roles</li>
+</ul>
+<h2 id="fully-qualified-names"><a class="header" href="#fully-qualified-names">Fully Qualified Names</a></h2>
+<p>Use <code>fully_qualified_name</code> attributes for schema and object references:</p>
+<pre><code class="language-hcl"># Schema grant
+on_schema {
+  schema_name = snowflake_schema.ADS.fully_qualified_name
+  # Results in: "TEST_DB.ADS"
+}
+
+# Table grant
+on_schema_object {
+  object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+  # Results in: "TEST_DB.ADS.FACEBOOK_ADS"
+}
+
+# View grant
+on_schema_object {
+  object_name = snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name
+  # Results in: "TEST_DB.ADS.AGG_FACEBOOK_ADS"
+}
+</code></pre>
+<h2 id="provider-requirements"><a class="header" href="#provider-requirements">Provider Requirements</a></h2>
+<p>Grants require the <code>snowflake_sysadmin</code> provider because:</p>
+<ul>
+<li>Granting privileges requires SYSADMIN privileges</li>
+<li>Privilege management is a system administration task</li>
+</ul>
+<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
+<h3 id="required-dependencies"><a class="header" href="#required-dependencies">Required Dependencies</a></h3>
+<p>Grants depend on:</p>
+<ul>
+<li><strong>Roles</strong>: Roles must exist before granting</li>
+<li><strong>Objects</strong>: Objects (databases, schemas, tables, views, warehouses) must exist before granting</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
+  # ... grant configuration ...
+  # Implicitly depends on:
+  # - module.ALL_ROLES.ROLES.MARKETING (role must exist)
+  # - snowflake_table.FACEBOOK_ADS (table must exist)
+}
+</code></pre>
+<h2 id="privilege-hierarchy"><a class="header" href="#privilege-hierarchy">Privilege Hierarchy</a></h2>
+<p>Privileges follow a hierarchy in Snowflake:</p>
+<ol>
+<li><strong>Database USAGE</strong> → Required to access schemas</li>
+<li><strong>Schema USAGE</strong> → Required to access tables/views</li>
+<li><strong>Table/View SELECT</strong> → Required to query data</li>
+</ol>
+<p><strong>Example:</strong></p>
+<pre><code class="language-hcl"># Step 1: Grant database access
+resource "snowflake_grant_privileges_to_account_role" "DB_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.TEST_DB.name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+# Step 2: Grant schema access
+resource "snowflake_grant_privileges_to_account_role" "SCHEMA_GRANT" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+  on_schema {
+    schema_name = snowflake_schema.ADS.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+# Step 3: Grant table access
+resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<ol>
+<li><strong>Principle of Least Privilege</strong>: Grant only necessary privileges</li>
+<li><strong>Explicit Grants</strong>: Explicitly grant each required privilege</li>
+<li><strong>Use USAGE First</strong>: Grant USAGE on database/schema before object privileges</li>
+<li><strong>Avoid Grant Option</strong>: Use <code>with_grant_option = false</code> unless necessary</li>
+<li><strong>Document Grants</strong>: Add comments explaining why grants are needed</li>
+<li><strong>Role-Based</strong>: Grant to roles, not individual users</li>
+<li><strong>Review Regularly</strong>: Regularly review and audit grants</li>
+</ol>
+<h2 id="common-patterns"><a class="header" href="#common-patterns">Common Patterns</a></h2>
+<h3 id="read-only-access"><a class="header" href="#read-only-access">Read-Only Access</a></h3>
+<pre><code class="language-hcl"># Grant read-only access to a role
+resource "snowflake_grant_privileges_to_account_role" "READONLY_DB" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+  on_account_object {
+    object_type = "DATABASE"
+    object_name = snowflake_database.MY_DB.name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+resource "snowflake_grant_privileges_to_account_role" "READONLY_SCHEMA" {
+  privileges        = ["USAGE"]
+  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+  on_schema {
+    schema_name = snowflake_schema.PUBLIC.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+
+resource "snowflake_grant_privileges_to_account_role" "READONLY_TABLE" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.READONLY.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="full-access"><a class="header" href="#full-access">Full Access</a></h3>
+<pre><code class="language-hcl"># Grant full access to a role
+resource "snowflake_grant_privileges_to_account_role" "FULL_ACCESS" {
+  privileges        = ["ALL PRIVILEGES"]
+  account_role_name = module.ALL_ROLES.ROLES.ADMIN.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.MY_TABLE.fully_qualified_name
+  }
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h3 id="role-not-found"><a class="header" href="#role-not-found">Role Not Found</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Role does not exist
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure roles are created before granting</li>
+<li>Verify role name is correct</li>
+<li>Check that role exists in Snowflake</li>
+</ul>
+<h3 id="object-not-found"><a class="header" href="#object-not-found">Object Not Found</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Object does not exist
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure objects are created before granting</li>
+<li>Verify object names are correct</li>
+<li>Check that objects exist in Snowflake</li>
+</ul>
+<h3 id="insufficient-privileges"><a class="header" href="#insufficient-privileges">Insufficient Privileges</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: 001003 (42000): SQL access control error: Insufficient privileges
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure provider uses SYSADMIN role</li>
+<li>Verify user can assume SYSADMIN role</li>
+<li>Check that user has necessary privileges to grant</li>
+</ul>
+<h3 id="missing-usage-privilege"><a class="header" href="#missing-usage-privilege">Missing USAGE Privilege</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Cannot access object - missing USAGE privilege
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Grant USAGE on database first</li>
+<li>Grant USAGE on schema before table/view privileges</li>
+<li>Follow privilege hierarchy</li>
+</ul>
+<h2 id="related-documentation"><a class="header" href="#related-documentation">Related Documentation</a></h2>
+<ul>
+<li><a href="../modules/roles-module.html">Roles Module</a> - Creates roles that receive grants</li>
+<li><a href="databases.html">Databases</a> - Objects that can be granted</li>
+<li><a href="schemas.html">Schemas</a> - Objects that can be granted</li>
+<li><a href="tables.html">Tables</a> - Objects that can be granted</li>
+<li><a href="views.html">Views</a> - Objects that can be granted</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../resources/views.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../usage/basic-usage.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../resources/views.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../usage/basic-usage.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

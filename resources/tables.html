@@ -1,0 +1,509 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Tables - Snowflake Terraform Infrastructure Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Comprehensive documentation for managing Snowflake infrastructure using Terraform">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Snowflake Terraform Infrastructure Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="tables"><a class="header" href="#tables">Tables</a></h1>
+<p>This document explains how tables are created and managed in the Terraform configuration.</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>Tables in Snowflake store structured data with defined columns and data types. The configuration creates tables directly in the root <code>main.tf</code> file within schemas.</p>
+<h2 id="resource-definition"><a class="header" href="#resource-definition">Resource Definition</a></h2>
+<h3 id="basic-table"><a class="header" href="#basic-table">Basic Table</a></h3>
+<pre><code class="language-hcl">resource "snowflake_table" "FACEBOOK_ADS" {
+  database = snowflake_database.TEST_DB.name
+  schema   = snowflake_schema.ADS.name
+  name     = "FACEBOOK_ADS"
+  comment  = "A table for facebook ads data"
+  
+  column {
+    name     = "ID"
+    type     = "NUMBER(38,0)"
+    nullable = false
+  }
+  
+  column {
+    name = "AD_NAME"
+    type = "VARCHAR(16777216)"
+  }
+  
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="resource-properties"><a class="header" href="#resource-properties">Resource Properties</a></h2>
+<h3 id="required-properties"><a class="header" href="#required-properties">Required Properties</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>name</code></td><td><code>string</code></td><td>Name of the table</td></tr>
+<tr><td><code>database</code></td><td><code>string</code></td><td>Name of the parent database</td></tr>
+<tr><td><code>schema</code></td><td><code>string</code></td><td>Name of the parent schema</td></tr>
+</tbody></table>
+</div>
+<h3 id="optional-properties"><a class="header" href="#optional-properties">Optional Properties</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>comment</code></td><td><code>string</code></td><td><code>null</code></td><td>Comment describing the table</td></tr>
+<tr><td><code>provider</code></td><td><code>provider</code></td><td><code>default</code></td><td>Provider alias to use</td></tr>
+</tbody></table>
+</div>
+<h3 id="column-block"><a class="header" href="#column-block">Column Block</a></h3>
+<p>Each table must have at least one column block:</p>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>name</code></td><td><code>string</code></td><td>Yes</td><td>Column name</td></tr>
+<tr><td><code>type</code></td><td><code>string</code></td><td>Yes</td><td>Column data type</td></tr>
+<tr><td><code>nullable</code></td><td><code>bool</code></td><td>No</td><td>Whether column allows NULL values</td></tr>
+<tr><td><code>default</code></td><td><code>string</code></td><td>No</td><td>Default value for the column</td></tr>
+<tr><td><code>comment</code></td><td><code>string</code></td><td>No</td><td>Comment describing the column</td></tr>
+</tbody></table>
+</div>
+<h2 id="data-types"><a class="header" href="#data-types">Data Types</a></h2>
+<p>Common Snowflake data types:</p>
+<h3 id="numeric-types"><a class="header" href="#numeric-types">Numeric Types</a></h3>
+<ul>
+<li><code>NUMBER(p,s)</code>: Fixed-point number (precision, scale)</li>
+<li><code>FLOAT</code>, <code>FLOAT4</code>, <code>FLOAT8</code>: Floating-point numbers</li>
+<li><code>INTEGER</code>, <code>INT</code>, <code>BIGINT</code>, <code>SMALLINT</code>, <code>TINYINT</code>: Integer types</li>
+</ul>
+<h3 id="string-types"><a class="header" href="#string-types">String Types</a></h3>
+<ul>
+<li><code>VARCHAR(n)</code>: Variable-length string (max 16MB)</li>
+<li><code>CHAR(n)</code>: Fixed-length string</li>
+<li><code>STRING</code>: Alias for VARCHAR(16777216)</li>
+<li><code>TEXT</code>: Alias for VARCHAR(16777216)</li>
+</ul>
+<h3 id="datetime-types"><a class="header" href="#datetime-types">Date/Time Types</a></h3>
+<ul>
+<li><code>DATE</code>: Date only</li>
+<li><code>TIME</code>: Time only</li>
+<li><code>TIMESTAMP_NTZ</code>: Timestamp without timezone</li>
+<li><code>TIMESTAMP_LTZ</code>: Timestamp with local timezone</li>
+<li><code>TIMESTAMP_TZ</code>: Timestamp with timezone</li>
+</ul>
+<h3 id="other-types"><a class="header" href="#other-types">Other Types</a></h3>
+<ul>
+<li><code>BOOLEAN</code>: True/false values</li>
+<li><code>VARIANT</code>: Semi-structured data (JSON, etc.)</li>
+<li><code>ARRAY</code>: Array of values</li>
+<li><code>OBJECT</code>: Key-value pairs</li>
+</ul>
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="simple-table"><a class="header" href="#simple-table">Simple Table</a></h3>
+<pre><code class="language-hcl">resource "snowflake_table" "USERS" {
+  database = snowflake_database.MY_DB.name
+  schema   = snowflake_schema.PUBLIC.name
+  name     = "USERS"
+  comment  = "User table"
+  
+  column {
+    name     = "USER_ID"
+    type     = "NUMBER(38,0)"
+    nullable = false
+  }
+  
+  column {
+    name = "USERNAME"
+    type = "VARCHAR(255)"
+  }
+  
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="table-with-all-column-options"><a class="header" href="#table-with-all-column-options">Table with All Column Options</a></h3>
+<pre><code class="language-hcl">resource "snowflake_table" "ORDERS" {
+  database = snowflake_database.MY_DB.name
+  schema   = snowflake_schema.SALES.name
+  name     = "ORDERS"
+  comment  = "Orders table"
+  
+  column {
+    name     = "ORDER_ID"
+    type     = "NUMBER(38,0)"
+    nullable = false
+    comment  = "Primary key"
+  }
+  
+  column {
+    name     = "ORDER_DATE"
+    type     = "TIMESTAMP_NTZ(9)"
+    nullable = false
+    default  = "CURRENT_TIMESTAMP()"
+  }
+  
+  column {
+    name     = "CUSTOMER_ID"
+    type     = "NUMBER(38,0)"
+    nullable = false
+  }
+  
+  column {
+    name     = "TOTAL_AMOUNT"
+    type     = "NUMBER(10,2)"
+    nullable = true
+    comment  = "Order total in dollars"
+  }
+  
+  column {
+    name     = "ORDER_DATA"
+    type     = "VARIANT"
+    nullable = true
+    comment  = "Additional order data in JSON format"
+  }
+  
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="table-with-variant-column"><a class="header" href="#table-with-variant-column">Table with Variant Column</a></h3>
+<pre><code class="language-hcl">resource "snowflake_table" "FACEBOOK_ADS" {
+  database = snowflake_database.TEST_DB.name
+  schema   = snowflake_schema.ADS.name
+  name     = "FACEBOOK_ADS"
+  comment  = "A table for facebook ads data"
+  
+  column {
+    name     = "ID"
+    type     = "NUMBER(38,0)"
+    nullable = false
+  }
+  
+  column {
+    name     = "AD_NAME"
+    type     = "VARCHAR(16777216)"
+    nullable = false
+  }
+  
+  column {
+    name = "AD_DATE"
+    type = "TIMESTAMP_NTZ(9)"
+  }
+  
+  column {
+    name    = "EXAMPLE_VARIANT"
+    type    = "VARIANT"
+    comment = "extra data for the ad"
+  }
+  
+  provider = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h2 id="provider-requirements"><a class="header" href="#provider-requirements">Provider Requirements</a></h2>
+<p>Tables require the <code>snowflake_sysadmin</code> provider because:</p>
+<ul>
+<li>Creating tables requires SYSADMIN privileges</li>
+<li>Table management is a system administration task</li>
+</ul>
+<p><strong>Note:</strong> The provider configuration includes <code>preview_features_enabled = ["snowflake_table_resource"]</code> which may be required for table operations.</p>
+<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
+<h3 id="required-dependencies"><a class="header" href="#required-dependencies">Required Dependencies</a></h3>
+<p>Tables depend on:</p>
+<ul>
+<li><strong>Database</strong>: Must reference an existing database</li>
+<li><strong>Schema</strong>: Must reference an existing schema</li>
+<li>Schema must be created before table</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-hcl">resource "snowflake_table" "MY_TABLE" {
+  database = snowflake_database.TEST_DB.name  # References database
+  schema   = snowflake_schema.ADS.name        # References schema
+  name     = "MY_TABLE"
+  # ...
+}
+</code></pre>
+<h3 id="dependent-resources"><a class="header" href="#dependent-resources">Dependent Resources</a></h3>
+<p>The following resources depend on tables:</p>
+<ul>
+<li>Views (may reference tables)</li>
+<li>Grants (granted on tables)</li>
+</ul>
+<h2 id="fully-qualified-names"><a class="header" href="#fully-qualified-names">Fully Qualified Names</a></h2>
+<p>Tables have a <code>fully_qualified_name</code> attribute that includes database and schema:</p>
+<pre><code class="language-hcl"># Reference fully qualified name
+object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+# Results in: "TEST_DB.ADS.FACEBOOK_ADS"
+</code></pre>
+<p>Use <code>fully_qualified_name</code> when:</p>
+<ul>
+<li>Granting privileges on tables</li>
+<li>Referencing tables in other resources</li>
+<li>Need fully qualified table name</li>
+</ul>
+<h2 id="granting-access"><a class="header" href="#granting-access">Granting Access</a></h2>
+<p>Tables can be granted to roles for access control:</p>
+<pre><code class="language-hcl">resource "snowflake_grant_privileges_to_account_role" "TABLE_GRANT" {
+  privileges        = ["SELECT"]
+  account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+  on_schema_object {
+    object_type = "TABLE"
+    object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+  }
+  with_grant_option = false
+  provider          = snowflake.snowflake_sysadmin
+}
+</code></pre>
+<h3 id="available-privileges"><a class="header" href="#available-privileges">Available Privileges</a></h3>
+<ul>
+<li><strong>SELECT</strong>: Query the table</li>
+<li><strong>INSERT</strong>: Insert rows into the table</li>
+<li><strong>UPDATE</strong>: Update rows in the table</li>
+<li><strong>DELETE</strong>: Delete rows from the table</li>
+<li><strong>TRUNCATE</strong>: Truncate the table</li>
+<li><strong>REFERENCES</strong>: Reference the table in foreign keys</li>
+<li><strong>OWNERSHIP</strong>: Full ownership of the table</li>
+<li><strong>ALL PRIVILEGES</strong>: All of the above</li>
+</ul>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<ol>
+<li><strong>Descriptive Names</strong>: Use clear, descriptive table and column names</li>
+<li><strong>Comments</strong>: Always add comments explaining table and column purpose</li>
+<li><strong>Nullable Columns</strong>: Explicitly set <code>nullable</code> for clarity</li>
+<li><strong>Data Types</strong>: Choose appropriate data types for data</li>
+<li><strong>Primary Keys</strong>: Consider adding primary key constraints (via ALTER TABLE)</li>
+<li><strong>Access Control</strong>: Grant appropriate privileges to roles</li>
+<li><strong>Naming Conventions</strong>: Follow consistent naming conventions</li>
+</ol>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h3 id="table-already-exists"><a class="header" href="#table-already-exists">Table Already Exists</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: 2003: Object already exists
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Import existing table: <code>terraform import snowflake_table.FACEBOOK_ADS "TEST_DB.ADS.FACEBOOK_ADS"</code></li>
+<li>Or remove table from Snowflake manually</li>
+<li>Or use a different table name</li>
+</ul>
+<h3 id="schema-not-found"><a class="header" href="#schema-not-found">Schema Not Found</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Schema does not exist
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure schema is created before table</li>
+<li>Verify schema name is correct</li>
+<li>Check that schema exists in Snowflake</li>
+</ul>
+<h3 id="invalid-data-type"><a class="header" href="#invalid-data-type">Invalid Data Type</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: Invalid data type
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Verify data type syntax is correct</li>
+<li>Check that data type is supported by Snowflake</li>
+<li>Review Snowflake data type documentation</li>
+</ul>
+<h3 id="insufficient-privileges"><a class="header" href="#insufficient-privileges">Insufficient Privileges</a></h3>
+<p><strong>Error:</strong></p>
+<pre><code>Error: 001003 (42000): SQL access control error: Insufficient privileges
+</code></pre>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>Ensure provider uses SYSADMIN role</li>
+<li>Verify user can assume SYSADMIN role</li>
+<li>Check that user has necessary privileges</li>
+</ul>
+<h2 id="related-documentation"><a class="header" href="#related-documentation">Related Documentation</a></h2>
+<ul>
+<li><a href="schemas.html">Schemas</a> - Parent containers for tables</li>
+<li><a href="views.html">Views</a> - May reference tables</li>
+<li><a href="grants.html">Grants and Privileges</a> - Granting table access</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../resources/schemas.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../resources/views.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../resources/schemas.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../resources/views.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
