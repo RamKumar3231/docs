@@ -459,29 +459,77 @@ default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
   }
 }
 </code></pre>
-<h3 id="multiple-warehouses-for-different-teams"><a class="header" href="#multiple-warehouses-for-different-teams">Multiple Warehouses for Different Teams</a></h3>
+<h3 id="multiple-warehouses-for-different-teams-actual-example"><a class="header" href="#multiple-warehouses-for-different-teams-actual-example">Multiple Warehouses for Different Teams (Actual Example)</a></h3>
+<p>This matches the actual warehouses in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">warehouse_map = {
-  "MARKETING_WH" = {
-    warehouse_type = "STANDARD"
-    warehouse_generation = "2"
-    warehouse_size = "SMALL"
+  "MARKETING_XSMALL_WH" = {
+    warehouse_type                = "STANDARD"
+    warehouse_generation          = "2"
+    warehouse_max_cluster_count   = 1
+    warehouse_min_cluster_count   = 1
+    warehouse_scaling_policy      = "ECONOMY"
+    warehouse_initially_suspended = true
+    warehouse_comment             = "WAREHOUSE for Marketing team"
     role_privileges = [
       {
         account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
         privileges        = ["USAGE"]
       }
     ]
+    with_grant_option = false
   },
-  "SALES_WH" = {
-    warehouse_type = "STANDARD"
-    warehouse_generation = "2"
-    warehouse_size = "SMALL"
+  "MARKETING_MEDIUM_WH" = {
+    warehouse_type                = "STANDARD"
+    warehouse_generation          = "2"
+    warehouse_size                = "MEDIUM"
+    warehouse_max_cluster_count   = 1
+    warehouse_min_cluster_count   = 1
+    warehouse_scaling_policy      = "ECONOMY"
+    warehouse_initially_suspended = true
+    warehouse_comment             = "WAREHOUSE for Marketing team"
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false
+  },
+  "SALES_XSMALL_WH" = {
+    warehouse_type                         = "STANDARD"
+    warehouse_generation                   = "2"
+    warehouse_size                         = "SMALL"
+    warehouse_auto_suspend                 = 60
+    warehouse_auto_resume                  = true
+    warehouse_initially_suspended          = true
+    warehouse_comment                      = "WAREHOUSE for sales team"
+    warehouse_max_concurrency_level        = 8
+    warehouse_statement_timeout_in_seconds = 900
     role_privileges = [
       {
         account_role_name = module.ALL_ROLES.ROLES.SALES.name
         privileges        = ["USAGE"]
       }
     ]
+    with_grant_option = false
+  },
+  "SALES_SMALL_WH" = {
+    warehouse_type                         = "STANDARD"
+    warehouse_generation                   = "2"
+    warehouse_size                         = "SMALL"
+    warehouse_auto_suspend                 = 60
+    warehouse_auto_resume                  = true
+    warehouse_initially_suspended          = true
+    warehouse_comment                      = "WAREHOUSE for sales team"
+    warehouse_max_concurrency_level        = 8
+    warehouse_statement_timeout_in_seconds = 900
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.SALES.name
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false
   }
 }
 </code></pre>

@@ -441,26 +441,32 @@ warehouse_name = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
 # Use in user default
 default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
 </code></pre>
-<h2 id="resource-outputs"><a class="header" href="#resource-outputs">Resource Outputs</a></h2>
-<p>Individual resources also have outputs that can be referenced:</p>
+<h2 id="module-resource-outputs"><a class="header" href="#module-resource-outputs">Module Resource Outputs</a></h2>
+<p>Module resources have outputs that can be referenced through module outputs:</p>
 <h3 id="database-outputs"><a class="header" href="#database-outputs">Database Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_database.TEST_DB.name
-snowflake_database.TEST_DB.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_DATABASES.DATABASES.TEST_DB.name
+module.ALL_DATABASES.DATABASES.TEST_DB.comment
 </code></pre>
 <h3 id="schema-outputs"><a class="header" href="#schema-outputs">Schema Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_schema.ADS.name
-snowflake_schema.ADS.fully_qualified_name  # "DATABASE.SCHEMA"
-snowflake_schema.ADS.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_SCHEMAS.SCHEMAS.ADS.name
+module.ALL_SCHEMAS.SCHEMAS.ADS.database
+module.ALL_SCHEMAS.SCHEMAS.ADS.comment
 </code></pre>
 <h3 id="table-outputs"><a class="header" href="#table-outputs">Table Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_table.FACEBOOK_ADS.name
-snowflake_table.FACEBOOK_ADS.fully_qualified_name  # "DATABASE.SCHEMA.TABLE"
-snowflake_table.FACEBOOK_ADS.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.name
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.database
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.schema
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.comment
 </code></pre>
 <h3 id="view-outputs"><a class="header" href="#view-outputs">View Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_view.AGG_FACEBOOK_ADS.name
-snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name  # "DATABASE.SCHEMA.VIEW"
-snowflake_view.AGG_FACEBOOK_ADS.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.name
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.database
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.schema
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.comment
 </code></pre>
 <h2 id="using-outputs"><a class="header" href="#using-outputs">Using Outputs</a></h2>
 <h3 id="in-terraform-configuration"><a class="header" href="#in-terraform-configuration">In Terraform Configuration</a></h3>
@@ -468,9 +474,17 @@ snowflake_view.AGG_FACEBOOK_ADS.comment
 roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
 default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
 
-# Reference resource outputs
-schema_name = snowflake_schema.ADS.fully_qualified_name
-object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+# Reference database outputs
+database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+
+# Reference schema outputs
+schema_name = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+
+# Reference table outputs
+table_name = module.ALL_TABLES.TABLES.FACEBOOK_ADS.name
+
+# Reference view outputs
+view_name = module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.name
 </code></pre>
 <h3 id="in-terraform-cli"><a class="header" href="#in-terraform-cli">In Terraform CLI</a></h3>
 <pre><code class="language-bash"># View all outputs
@@ -518,8 +532,8 @@ WH_NAME=$(terraform output -raw ALL_WAREHOUSES | jq -r '.WAREHOUSES.MY_WH.name')
 <pre><code class="language-hcl">output "DATABASE_NAMES" {
   description = "List of all database names"
   value       = [
-    snowflake_database.TEST_DB.name,
-    snowflake_database.TEST_DB2.name
+    module.ALL_DATABASES.DATABASES.TEST_DB.name,
+    module.ALL_DATABASES.DATABASES.TEST_DB2.name
   ]
 }
 

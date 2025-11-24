@@ -164,6 +164,9 @@
 ├── outputs.tf                 # Output definitions
 ├── terraform.tfvars           # Variable values (not in version control)
 ├── .gitignore                 # Git ignore rules
+├── imported_resources.md      # Documentation of imported resources
+├── README.md                  # Project README with build instructions
+├── book.toml                  # mdBook configuration
 ├── .terraform/                # Terraform provider binaries (generated)
 ├── .terraform.lock.hcl        # Provider version lock file
 ├── terraform.tfstate          # State file (not in version control)
@@ -207,6 +210,7 @@
 <li>Module declarations for all resources (roles, users, warehouses, databases, schemas, tables, views)</li>
 <li>All resources are managed through modules - no direct resource definitions</li>
 <li>Each module handles its own privilege grants automatically</li>
+<li>Map-based configuration for each module (role_map, user_map, warehouse_map, database_map, schema_map, table_map, view_map)</li>
 </ul>
 <h4 id="providertf"><a class="header" href="#providertf"><code>provider.tf</code></a></h4>
 <p>Defines the Terraform providers:</p>
@@ -233,11 +237,33 @@
 <p>Contains actual variable values:</p>
 <ul>
 <li><strong>Not committed to version control</strong> (in <code>.gitignore</code>)</li>
-<li>Contains sensitive credentials</li>
+<li>Contains sensitive credentials (snowflake_password, etc.)</li>
 <li>Environment-specific values</li>
+<li>Required variables: snowflake_organization, snowflake_account, snowflake_username, snowflake_password, snowflake_role, snowflake_warehouse</li>
+</ul>
+<h4 id="imported_resourcesmd"><a class="header" href="#imported_resourcesmd"><code>imported_resources.md</code></a></h4>
+<p>Documents resources that have been imported into Terraform management:</p>
+<ul>
+<li>Tracks imported resources for reference</li>
+<li>Contains import commands for future use</li>
+<li>Helps maintain awareness of manually imported resources</li>
+</ul>
+<h4 id="readmemd"><a class="header" href="#readmemd"><code>README.md</code></a></h4>
+<p>Project README file:</p>
+<ul>
+<li>Instructions for building mdBook documentation</li>
+<li>Quick start guide</li>
+<li>Project overview</li>
+</ul>
+<h4 id="booktoml"><a class="header" href="#booktoml"><code>book.toml</code></a></h4>
+<p>mdBook configuration file:</p>
+<ul>
+<li>Defines book title, description, and metadata</li>
+<li>Configures HTML output settings</li>
+<li>Sets search and theme preferences</li>
 </ul>
 <h3 id="module-structure"><a class="header" href="#module-structure">Module Structure</a></h3>
-<p>The project uses a modular architecture with three main modules:</p>
+<p>The project uses a fully modular architecture with seven main modules:</p>
 <h4 id="modulessnowflakeroles"><a class="header" href="#modulessnowflakeroles"><code>modules/snowflake/roles/</code></a></h4>
 <p>Manages Snowflake account roles:</p>
 <ul>
@@ -256,8 +282,36 @@
 <p>Manages Snowflake warehouses:</p>
 <ul>
 <li>Creates warehouses with configurable properties</li>
-<li>Grants warehouse privileges to roles</li>
+<li>Grants warehouse privileges to roles automatically</li>
 <li>Supports multiple warehouse configurations</li>
+</ul>
+<h4 id="modulessnowflakedatabase"><a class="header" href="#modulessnowflakedatabase"><code>modules/snowflake/database/</code></a></h4>
+<p>Manages Snowflake databases:</p>
+<ul>
+<li>Creates databases with retention policies</li>
+<li>Grants database privileges to roles automatically</li>
+<li>Supports multiple databases with different configurations</li>
+</ul>
+<h4 id="modulessnowflakeschema"><a class="header" href="#modulessnowflakeschema"><code>modules/snowflake/schema/</code></a></h4>
+<p>Manages Snowflake schemas:</p>
+<ul>
+<li>Creates schemas within databases</li>
+<li>Supports managed access and transient schemas</li>
+<li>Grants schema privileges to roles automatically</li>
+</ul>
+<h4 id="modulessnowflaketables"><a class="header" href="#modulessnowflaketables"><code>modules/snowflake/tables/</code></a></h4>
+<p>Manages Snowflake tables:</p>
+<ul>
+<li>Creates tables with column definitions</li>
+<li>Supports various data types and constraints</li>
+<li>Grants table privileges to roles automatically</li>
+</ul>
+<h4 id="modulessnowflakeviews"><a class="header" href="#modulessnowflakeviews"><code>modules/snowflake/views/</code></a></h4>
+<p>Manages Snowflake views:</p>
+<ul>
+<li>Creates views with SQL statements</li>
+<li>Supports table references in SQL</li>
+<li>Grants view privileges to roles automatically</li>
 </ul>
 <h2 id="design-principles"><a class="header" href="#design-principles">Design Principles</a></h2>
 <h3 id="1-modularity"><a class="header" href="#1-modularity">1. Modularity</a></h3>
@@ -273,6 +327,10 @@
 <li><strong>Roles Module</strong>: Handles role creation and hierarchy</li>
 <li><strong>Users Module</strong>: Handles user creation and role assignment</li>
 <li><strong>Warehouse Module</strong>: Handles warehouse creation and privileges</li>
+<li><strong>Database Module</strong>: Handles database creation and privileges</li>
+<li><strong>Schema Module</strong>: Handles schema creation and privileges</li>
+<li><strong>Tables Module</strong>: Handles table creation and privileges</li>
+<li><strong>Views Module</strong>: Handles view creation and privileges</li>
 </ul>
 <h3 id="3-provider-aliases"><a class="header" href="#3-provider-aliases">3. Provider Aliases</a></h3>
 <p>Different provider aliases for different operations:</p>
@@ -291,20 +349,19 @@
 <p>The following dependency order is enforced:</p>
 <pre><code>Roles
   ↓
-Warehouses (may reference roles)
+Warehouses (references roles for grants)
   ↓
 Users (references roles and warehouses)
   ↓
-Databases
+Databases (references roles for grants)
   ↓
-Schemas (references databases)
+Schemas (references databases and roles for grants)
   ↓
-Tables (references schemas)
+Tables (references databases, schemas, and roles for grants)
   ↓
-Views (references tables)
-  ↓
-Grants (references all above)
+Views (references databases, schemas, tables, and roles for grants)
 </code></pre>
+<p><strong>Note:</strong> All grants are handled automatically within each module, so there are no separate grant resources in the root configuration. Each module manages its own privilege grants internally.</p>
 <h2 id="state-management"><a class="header" href="#state-management">State Management</a></h2>
 <h3 id="local-state-default"><a class="header" href="#local-state-default">Local State (Default)</a></h3>
 <ul>

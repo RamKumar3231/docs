@@ -202,12 +202,21 @@
 <h3 id="1-naming-conventions"><a class="header" href="#1-naming-conventions">1. Naming Conventions</a></h3>
 <p><strong>Use Consistent Naming:</strong></p>
 <pre><code class="language-hcl"># Good: Clear, descriptive names
-resource "snowflake_database" "SALES_DATABASE" { ... }
-resource "snowflake_schema" "ORDERS_SCHEMA" { ... }
+database_map = {
+  "SALES_DB" = { ... }
+  "MARKETING_DB" = { ... }
+}
+
+schema_map = {
+  "SALES_SCHEMA" = { ... }
+  "ORDERS_SCHEMA" = { ... }
+}
 
 # Bad: Unclear names
-resource "snowflake_database" "DB1" { ... }
-resource "snowflake_schema" "S1" { ... }
+database_map = {
+  "DB1" = { ... }
+  "DB2" = { ... }
+}
 </code></pre>
 <p><strong>Follow Patterns:</strong></p>
 <ul>
@@ -217,10 +226,12 @@ resource "snowflake_schema" "S1" { ... }
 </ul>
 <h3 id="2-comments"><a class="header" href="#2-comments">2. Comments</a></h3>
 <p><strong>Always Add Comments:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_database" "SALES_DB" {
-  name    = "SALES_DB"
-  comment = "Sales database for order processing"  # Good: Descriptive
-  # Bad: Missing or vague comments
+<pre><code class="language-hcl">database_map = {
+  "SALES_DB" = {
+    comment = "Sales database for order processing"  # Good: Descriptive
+    # Bad: Missing or vague comments
+    # ... other configuration
+  }
 }
 </code></pre>
 <h3 id="3-variables"><a class="header" href="#3-variables">3. Variables</a></h3>
@@ -233,14 +244,28 @@ warehouse_size = "SMALL"
 </code></pre>
 <h3 id="4-resource-organization"><a class="header" href="#4-resource-organization">4. Resource Organization</a></h3>
 <p><strong>Group Related Resources:</strong></p>
-<pre><code class="language-hcl"># Group by domain/team
+<pre><code class="language-hcl"># Group by domain/team in module maps
 # Sales resources
-resource "snowflake_database" "SALES_DB" { ... }
-resource "snowflake_schema" "SALES_SCHEMA" { ... }
+database_map = {
+  "SALES_DB" = { ... }
+}
+schema_map = {
+  "SALES_SCHEMA" = {
+    database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+    # ... other configuration
+  }
+}
 
 # Marketing resources
-resource "snowflake_database" "MARKETING_DB" { ... }
-resource "snowflake_schema" "MARKETING_SCHEMA" { ... }
+database_map = {
+  "MARKETING_DB" = { ... }
+}
+schema_map = {
+  "MARKETING_SCHEMA" = {
+    database_name = module.ALL_DATABASES.DATABASES.MARKETING_DB.name
+    # ... other configuration
+  }
+}
 </code></pre>
 <h2 id="module-best-practices"><a class="header" href="#module-best-practices">Module Best Practices</a></h2>
 <h3 id="1-module-design"><a class="header" href="#1-module-design">1. Module Design</a></h3>
@@ -428,9 +453,14 @@ column {
 </code></pre>
 <h3 id="4-view-dependencies"><a class="header" href="#4-view-dependencies">4. View Dependencies</a></h3>
 <p><strong>Declare Dependencies:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_view" "MY_VIEW" {
-  depends_on = [snowflake_table.MY_TABLE]  # Explicit dependency
-  # ... other config
+<pre><code class="language-hcl">view_map = {
+  "MY_VIEW" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+    statement     = "SELECT * FROM ${module.ALL_TABLES.TABLES.MY_TABLE.name}"
+    # Terraform automatically detects dependencies from SQL statement
+    # ... other config
+  }
 }
 </code></pre>
 <h2 id="workflow-best-practices"><a class="header" href="#workflow-best-practices">Workflow Best Practices</a></h2>

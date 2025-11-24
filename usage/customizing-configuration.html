@@ -364,74 +364,118 @@ snowflake_warehouse    = "PROD_WH"
 </code></pre>
 <h2 id="customizing-databases"><a class="header" href="#customizing-databases">Customizing Databases</a></h2>
 <h3 id="database-with-custom-retention"><a class="header" href="#database-with-custom-retention">Database with Custom Retention</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "CUSTOM_DB" {
-  name                        = "CUSTOM_DB"
-  comment                     = "Custom database with 30-day retention"
-  data_retention_time_in_days = 30
-  provider                    = snowflake.snowflake_sysadmin
+<p>Add to the <code>database_map</code> in the <code>ALL_DATABASES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "CUSTOM_DB" = {
+      comment                     = "Custom database with 30-day retention"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h2 id="customizing-schemas"><a class="header" href="#customizing-schemas">Customizing Schemas</a></h2>
 <h3 id="schema-with-managed-access"><a class="header" href="#schema-with-managed-access">Schema with Managed Access</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "SECURE_SCHEMA" {
-  name                = "SECURE_SCHEMA"
-  database            = snowflake_database.CUSTOM_DB.name
-  with_managed_access = true
-  comment             = "Schema with managed access for security"
-  provider            = snowflake.snowflake_sysadmin
+<p>Add to the <code>schema_map</code> in the <code>ALL_SCHEMAS</code> module:</p>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "SECURE_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.CUSTOM_DB.name
+      with_managed_access = true
+      is_transient        = false
+      comment             = "Schema with managed access for security"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="transient-schema"><a class="header" href="#transient-schema">Transient Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "TEMP_SCHEMA" {
-  name         = "TEMP_SCHEMA"
-  database     = snowflake_database.CUSTOM_DB.name
-  is_transient = true
-  comment      = "Temporary schema without Time Travel"
-  provider     = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "TEMP_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.CUSTOM_DB.name
+      with_managed_access = false
+      is_transient        = true
+      comment             = "Temporary schema without Time Travel"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h2 id="customizing-tables"><a class="header" href="#customizing-tables">Customizing Tables</a></h2>
 <h3 id="table-with-multiple-columns"><a class="header" href="#table-with-multiple-columns">Table with Multiple Columns</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "CUSTOM_TABLE" {
-  database = snowflake_database.CUSTOM_DB.name
-  schema   = snowflake_schema.PUBLIC.name
-  name     = "CUSTOM_TABLE"
-  comment  = "Custom table with various column types"
+<p>Add to the <code>table_map</code> in the <code>ALL_TABLES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-    comment  = "Primary key"
+  table_map = {
+    # ... existing tables ...
+    "CUSTOM_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.CUSTOM_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.PUBLIC.name
+      comment       = "Custom table with various column types"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+          comment  = "Primary key"
+        },
+        {
+          name     = "NAME"
+          type     = "VARCHAR(255)"
+          nullable = false
+        },
+        {
+          name     = "CREATED_AT"
+          type     = "TIMESTAMP_NTZ(9)"
+          nullable = false
+        },
+        {
+          name     = "AMOUNT"
+          type     = "NUMBER(10,2)"
+          nullable = true
+        },
+        {
+          name     = "METADATA"
+          type     = "VARIANT"
+          nullable = true
+          comment  = "Additional metadata in JSON format"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  
-  column {
-    name     = "NAME"
-    type     = "VARCHAR(255)"
-    nullable = false
-  }
-  
-  column {
-    name     = "CREATED_AT"
-    type     = "TIMESTAMP_NTZ(9)"
-    nullable = false
-    default  = "CURRENT_TIMESTAMP()"
-  }
-  
-  column {
-    name     = "AMOUNT"
-    type     = "NUMBER(10,2)"
-    nullable = true
-  }
-  
-  column {
-    name     = "METADATA"
-    type     = "VARIANT"
-    nullable = true
-    comment  = "Additional metadata in JSON format"
-  }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h2 id="using-variables-for-customization"><a class="header" href="#using-variables-for-customization">Using Variables for Customization</a></h2>
@@ -474,11 +518,21 @@ warehouse_size = "LARGE"
 </code></pre>
 <h2 id="conditional-configuration"><a class="header" href="#conditional-configuration">Conditional Configuration</a></h2>
 <h3 id="using-count"><a class="header" href="#using-count">Using Count</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "DEV_DB" {
-  count   = var.environment == "dev" ? 1 : 0
-  name    = "DEV_DB"
-  comment = "Development database"
-  provider = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = var.environment == "dev" ? {
+    "DEV_DB" = {
+      comment = "Development database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DEVELOPER.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  } : {}
 }
 </code></pre>
 <h3 id="using-for_each-with-conditions"><a class="header" href="#using-for_each-with-conditions">Using for_each with Conditions</a></h3>

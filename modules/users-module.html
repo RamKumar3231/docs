@@ -473,6 +473,83 @@ user_name = module.ALL_USERS.USERS.TEST_USER1.name
   }
 }
 </code></pre>
+<h3 id="actual-users-from-maintf"><a class="header" href="#actual-users-from-maintf">Actual Users from main.tf</a></h3>
+<p>Here are examples from the actual configuration:</p>
+<pre><code class="language-hcl">module "ALL_USERS" {
+  source = "./modules/snowflake/users"
+  
+  providers = {
+    snowflake = snowflake.snowflake_securityadmin
+  }
+  
+  user_map = {
+    "TEST_USER1" = {
+      first_name                     = "test"
+      last_name                      = "user1"
+      email                          = "test_user1@example.com"
+      comment                        = "User of snowflake created via Terraform"
+      disabled                       = "false"
+      default_secondary_roles_option = "NONE"
+      user_type                      = "person"
+      must_change_password           = "true"
+      disable_mfa                    = "false"
+      roles_to_assign                = [
+        module.ALL_ROLES.ROLES.SALES.name,
+        module.ALL_ROLES.ROLES.MARKETING.name
+      ]
+    },
+    "TEST_USER10" = {
+      first_name                     = "test"
+      last_name                      = "user10"
+      email                          = "test_user10@example.com"
+      comment                        = "Test User 10 of snowflake created via Terraform"
+      disabled                       = "false"
+      default_warehouse              = module.ALL_WAREHOUSES.WAREHOUSES.SALES_XSMALL_WH.name
+      default_role                   = module.ALL_ROLES.ROLES.SALES.name
+      default_secondary_roles_option = "NONE"
+      user_type                      = "person"
+      must_change_password           = "true"
+      disable_mfa                    = "false"
+      roles_to_assign                = [module.ALL_ROLES.ROLES.SALES.name]
+    },
+    "TEST_USER11" = {
+      first_name                     = "test"
+      last_name                      = "user11"
+      email                          = "test_user11@example.com"
+      comment                        = "Test User 11 of snowflake created via Terraform"
+      disabled                       = "false"
+      default_warehouse              = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_MEDIUM_WH.name
+      default_role                   = module.ALL_ROLES.ROLES.MARKETING.name
+      default_secondary_roles_option = "NONE"
+      user_type                      = "person"
+      must_change_password           = "true"
+      disable_mfa                    = "false"
+      roles_to_assign                = [module.ALL_ROLES.ROLES.MARKETING.name]
+    },
+    "TEST_USER12" = {
+      first_name                     = "test"
+      last_name                      = "user12"
+      email                          = "test_user12@example.com"
+      comment                        = "Test User 12 of snowflake created via Terraform"
+      disabled                       = "false"
+      default_secondary_roles_option = "NONE"
+      user_type                      = "legacy_service"
+      must_change_password           = "true"
+      roles_to_assign                = []
+    },
+    "DBT_DEVELOPER" = {
+      first_name  = "dbt"
+      last_name   = "developer"
+      user_type   = "service"
+      roles_to_assign = [
+        module.ALL_ROLES.ROLES.DATA_ENGINEER.name,
+        module.ALL_ROLES.ROLES.DATA_SCIENTIST.name,
+        module.ALL_ROLES.ROLES.ANALYST.name
+      ]
+    }
+  }
+}
+</code></pre>
 <h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
 <ol>
 <li><strong>Use Descriptive Names</strong>: Use clear, descriptive usernames</li>

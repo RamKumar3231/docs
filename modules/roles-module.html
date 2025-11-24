@@ -180,7 +180,8 @@
   }
 }
 </code></pre>
-<h3 id="with-parent-roles"><a class="header" href="#with-parent-roles">With Parent Roles</a></h3>
+<h3 id="with-parent-roles-actual-example"><a class="header" href="#with-parent-roles-actual-example">With Parent Roles (Actual Example)</a></h3>
+<p>This matches the actual roles in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_ROLES" {
   source = "./modules/snowflake/roles"
   
@@ -189,16 +190,24 @@
   }
   
   role_map = {
-    "DATA_SCIENTIST" = {
-      comment = "Role for data scientists"
+    "ANALYST" = {
+      parent_role_name = "DATA_ENGINEER"
+      comment          = "Role for data analysts"
     },
     "DATA_ENGINEER" = {
       parent_role_name = "DATA_SCIENTIST"
       comment          = "Role for data engineers"
     },
-    "ANALYST" = {
-      parent_role_name = "DATA_ENGINEER"
-      comment          = "Role for data analysts"
+    "DATA_SCIENTIST" = {
+      comment = "Role for data scientists"
+    },
+    "MARKETING" = {
+      parent_role_name = "SYSADMIN"
+      comment          = "Role for marketing team"
+    },
+    "SALES" = {
+      parent_role_name = "SYSADMIN"
+      comment          = "Role for sales team"
     }
   }
 }

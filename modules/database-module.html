@@ -356,7 +356,8 @@ database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
   }
 }
 </code></pre>
-<h3 id="multiple-databases-for-different-teams"><a class="header" href="#multiple-databases-for-different-teams">Multiple Databases for Different Teams</a></h3>
+<h3 id="multiple-databases-for-different-teams-actual-example"><a class="header" href="#multiple-databases-for-different-teams-actual-example">Multiple Databases for Different Teams (Actual Example)</a></h3>
+<p>This matches the actual databases in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_DATABASES" {
   source = "./modules/snowflake/database"
   
@@ -365,15 +366,20 @@ database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
   }
   
   database_map = {
-    "SALES_DB" = {
-      comment                     = "Sales database"
+    "ANALYTICS_DB" = {
+      comment                     = "Analytics database"
       data_retention_time_in_days = 1
       role_privileges = [
         {
-          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_SCIENTIST.name
           privileges        = ["USAGE"]
         }
       ]
+      with_grant_option = false
     },
     "MARKETING_DB" = {
       comment                     = "Marketing database"
@@ -384,6 +390,48 @@ database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
           privileges        = ["USAGE"]
         }
       ]
+      with_grant_option = false
+    },
+    "SALES_DB" = {
+      comment                     = "Sales database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+      with_grant_option = false
+    },
+    "TEST_DB" = {
+      comment                     = "Test database created via Terraform"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
+        }
+      ]
+      with_grant_option = false
+    },
+    "TEST_DB2" = {
+      comment                     = "Test database 2 created via Terraform"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
+        }
+      ]
+      with_grant_option = false
     }
   }
 }

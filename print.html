@@ -300,12 +300,20 @@ cd terraform
 ├── variables.tf
 ├── outputs.tf
 ├── terraform.tfvars
+├── book.toml
+├── README.md
+├── imported_resources.md
+├── .gitignore
 ├── modules/
 │   └── snowflake/
 │       ├── roles/
 │       ├── users/
-│       └── warehouse/
-└── .gitignore
+│       ├── warehouse/
+│       ├── database/
+│       ├── schema/
+│       ├── tables/
+│       └── views/
+└── src/                    # mdBook documentation source
 </code></pre>
 <h2 id="step-3-initialize-terraform"><a class="header" href="#step-3-initialize-terraform">Step 3: Initialize Terraform</a></h2>
 <p>Initialize Terraform to download the required providers:</p>
@@ -390,6 +398,7 @@ snowflake_password     = "YOUR_PASSWORD"
 snowflake_role         = "ACCOUNTADMIN"
 snowflake_warehouse    = "COMPUTE_WH"
 </code></pre>
+<p><strong>Note:</strong> All variables are defined in <code>variables.tf</code>. The <code>snowflake_warehouse</code> variable has a default value of <code>"COMPUTE_WH"</code>, so it’s optional if you’re using the default warehouse.</p>
 <h3 id="variable-descriptions"><a class="header" href="#variable-descriptions">Variable Descriptions</a></h3>
 <div class="table-wrapper"><table><thead><tr><th>Variable</th><th>Description</th><th>Example</th></tr></thead><tbody>
 <tr><td><code>snowflake_organization</code></td><td>Your Snowflake organization identifier</td><td><code>XKVLJOE</code></td></tr>
@@ -456,12 +465,14 @@ export TF_VAR_snowflake_warehouse="COMPUTE_WH"
 <li>Google Secret Manager</li>
 </ul>
 <h2 id="customizing-infrastructure"><a class="header" href="#customizing-infrastructure">Customizing Infrastructure</a></h2>
+<p>All infrastructure is customized by editing the module maps in <code>main.tf</code>. See the <a href="getting-started/../usage/customizing-configuration.html">Usage Guide</a> for detailed examples.</p>
 <h3 id="modifying-roles"><a class="header" href="#modifying-roles">Modifying Roles</a></h3>
-<p>Edit the <code>role_map</code> in <code>main.tf</code>:</p>
+<p>Edit the <code>role_map</code> in the <code>ALL_ROLES</code> module:</p>
 <pre><code class="language-hcl">module "ALL_ROLES" {
   source = "./modules/snowflake/roles"
   
   role_map = {
+    # ... existing roles ...
     "YOUR_ROLE" = {
       parent_role_name = "SYSADMIN"
       comment          = "Your role description"
@@ -470,11 +481,12 @@ export TF_VAR_snowflake_warehouse="COMPUTE_WH"
 }
 </code></pre>
 <h3 id="modifying-users"><a class="header" href="#modifying-users">Modifying Users</a></h3>
-<p>Edit the <code>user_map</code> in <code>main.tf</code>:</p>
+<p>Edit the <code>user_map</code> in the <code>ALL_USERS</code> module:</p>
 <pre><code class="language-hcl">module "ALL_USERS" {
   source = "./modules/snowflake/users"
   
   user_map = {
+    # ... existing users ...
     "YOUR_USER" = {
       first_name  = "John"
       last_name   = "Doe"
@@ -486,20 +498,48 @@ export TF_VAR_snowflake_warehouse="COMPUTE_WH"
 }
 </code></pre>
 <h3 id="modifying-warehouses"><a class="header" href="#modifying-warehouses">Modifying Warehouses</a></h3>
-<p>Edit the <code>warehouse_map</code> in <code>main.tf</code>:</p>
+<p>Edit the <code>warehouse_map</code> in the <code>ALL_WAREHOUSES</code> module:</p>
 <pre><code class="language-hcl">module "ALL_WAREHOUSES" {
   source = "./modules/snowflake/warehouse"
   
   warehouse_map = {
+    # ... existing warehouses ...
     "YOUR_WAREHOUSE" = {
       warehouse_type = "STANDARD"
       warehouse_generation = "2"
       warehouse_size = "SMALL"
-      # ... other configuration
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.YOUR_ROLE.name
+          privileges        = ["USAGE"]
+        }
+      ]
     }
   }
 }
 </code></pre>
+<h3 id="modifying-databases"><a class="header" href="#modifying-databases">Modifying Databases</a></h3>
+<p>Edit the <code>database_map</code> in the <code>ALL_DATABASES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "YOUR_DB" = {
+      comment                     = "Your database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.YOUR_ROLE.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="modifying-schemas-tables-and-views"><a class="header" href="#modifying-schemas-tables-and-views">Modifying Schemas, Tables, and Views</a></h3>
+<p>Similarly, edit the <code>schema_map</code>, <code>table_map</code>, and <code>view_map</code> in their respective modules. See the <a href="getting-started/../modules/database-module.html">Modules</a> documentation for detailed examples.</p>
 <h2 id="validating-configuration"><a class="header" href="#validating-configuration">Validating Configuration</a></h2>
 <p>After configuring variables, validate your setup:</p>
 <pre><code class="language-bash"># Validate syntax
@@ -586,39 +626,60 @@ You have reviewed the configuration in <code>main.tf</code></li>
 <li><strong>Roles</strong> (via <code>ALL_ROLES</code> module)</li>
 <li><strong>Warehouses</strong> (via <code>ALL_WAREHOUSES</code> module)</li>
 <li><strong>Users</strong> (via <code>ALL_USERS</code> module)</li>
-<li><strong>Databases</strong> (<code>TEST_DB</code>, <code>TEST_DB2</code>)</li>
-<li><strong>Schemas</strong> (<code>ADS</code>)</li>
-<li><strong>Tables</strong> (<code>FACEBOOK_ADS</code>)</li>
-<li><strong>Views</strong> (<code>AGG_FACEBOOK_ADS</code>)</li>
-<li><strong>Grants</strong> (various privilege grants)</li>
+<li><strong>Databases</strong> (via <code>ALL_DATABASES</code> module with automatic grants)</li>
+<li><strong>Schemas</strong> (via <code>ALL_SCHEMAS</code> module with automatic grants)</li>
+<li><strong>Tables</strong> (via <code>ALL_TABLES</code> module with automatic grants)</li>
+<li><strong>Views</strong> (via <code>ALL_VIEWS</code> module with automatic grants)</li>
 </ol>
 <h3 id="expected-output"><a class="header" href="#expected-output">Expected Output</a></h3>
 <pre><code>module.ALL_ROLES.snowflake_account_role.ROLES["ANALYST"]: Creating...
 module.ALL_ROLES.snowflake_account_role.ROLES["DATA_ENGINEER"]: Creating...
+module.ALL_ROLES.snowflake_account_role.ROLES["DATA_SCIENTIST"]: Creating...
+module.ALL_ROLES.snowflake_account_role.ROLES["MARKETING"]: Creating...
+module.ALL_ROLES.snowflake_account_role.ROLES["SALES"]: Creating...
+module.ALL_WAREHOUSES.snowflake_warehouse.WAREHOUSES["MARKETING_XSMALL_WH"]: Creating...
 ...
-Apply complete! Resources: 25 added, 0 changed, 0 destroyed.
+Apply complete! Resources: X added, 0 changed, 0 destroyed.
 </code></pre>
+<p><strong>Note:</strong> The exact number of resources will vary based on your configuration. The modules create multiple resources including grants.</p>
 <h2 id="step-4-verify-resources"><a class="header" href="#step-4-verify-resources">Step 4: Verify Resources</a></h2>
 <p>After successful application, verify resources in Snowflake:</p>
 <h3 id="using-snowflake-web-ui"><a class="header" href="#using-snowflake-web-ui">Using Snowflake Web UI</a></h3>
 <ol>
 <li>Log into Snowflake</li>
-<li>Navigate to <strong>Admin</strong> → <strong>Users &amp; Roles</strong></li>
-<li>Verify roles and users are created</li>
-<li>Navigate to <strong>Admin</strong> → <strong>Warehouses</strong></li>
-<li>Verify warehouses are created</li>
-<li>Navigate to <strong>Data</strong> → <strong>Databases</strong></li>
-<li>Verify databases, schemas, tables, and views</li>
+<li>Navigate to <strong>Admin</strong> → <strong>Users &amp; Roles</strong>
+<ul>
+<li>Verify roles are created (ANALYST, DATA_ENGINEER, DATA_SCIENTIST, MARKETING, SALES)</li>
+<li>Verify users are created (TEST_USER1, TEST_USER10, TEST_USER11, TEST_USER12, DBT_DEVELOPER)</li>
+</ul>
+</li>
+<li>Navigate to <strong>Admin</strong> → <strong>Warehouses</strong>
+<ul>
+<li>Verify warehouses are created (MARKETING_XSMALL_WH, MARKETING_MEDIUM_WH, SALES_XSMALL_WH, SALES_SMALL_WH)</li>
+</ul>
+</li>
+<li>Navigate to <strong>Data</strong> → <strong>Databases</strong>
+<ul>
+<li>Verify databases are created (ANALYTICS_DB, MARKETING_DB, SALES_DB, TEST_DB, TEST_DB2)</li>
+<li>Expand databases to verify schemas (SALES_SCHEMA, MARKETING_SCHEMA, ADS)</li>
+<li>Expand schemas to verify tables (FACEBOOK_ADS) and views (AGG_FACEBOOK_ADS)</li>
+</ul>
+</li>
 </ol>
 <h3 id="using-terraform-outputs"><a class="header" href="#using-terraform-outputs">Using Terraform Outputs</a></h3>
-<p>View outputs:</p>
+<p>View all outputs:</p>
 <pre><code class="language-bash">terraform output
 </code></pre>
 <p>View specific outputs:</p>
 <pre><code class="language-bash">terraform output ALL_ROLES
 terraform output ALL_USERS
 terraform output ALL_WAREHOUSES
+terraform output ALL_DATABASES
+terraform output ALL_SCHEMAS
+terraform output ALL_TABLES
+terraform output ALL_VIEWS
 </code></pre>
+<p><strong>Note:</strong> <code>ALL_USERS</code> is marked as sensitive, so be careful when viewing it.</p>
 <h2 id="step-5-test-access"><a class="header" href="#step-5-test-access">Step 5: Test Access</a></h2>
 <p>Test that users can access their assigned resources:</p>
 <ol>
@@ -654,9 +715,9 @@ terraform output ALL_WAREHOUSES
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Import existing resources: <code>terraform import &lt;resource_type&gt;.&lt;name&gt; &lt;snowflake_identifier&gt;</code></li>
+<li>Import existing resources into modules: <code>terraform import module.ALL_DATABASES.snowflake_database.DATABASES["DB_NAME"] "DB_NAME"</code></li>
 <li>Or remove existing resources from Snowflake manually</li>
-<li>Or modify resource names in configuration</li>
+<li>Or modify resource names in module configuration</li>
 </ul>
 <h3 id="issue-dependency-errors"><a class="header" href="#issue-dependency-errors">Issue: Dependency Errors</a></h3>
 <p><strong>Error:</strong></p>
@@ -715,6 +776,9 @@ terraform output ALL_WAREHOUSES
 ├── outputs.tf                 # Output definitions
 ├── terraform.tfvars           # Variable values (not in version control)
 ├── .gitignore                 # Git ignore rules
+├── imported_resources.md      # Documentation of imported resources
+├── README.md                  # Project README with build instructions
+├── book.toml                  # mdBook configuration
 ├── .terraform/                # Terraform provider binaries (generated)
 ├── .terraform.lock.hcl        # Provider version lock file
 ├── terraform.tfstate          # State file (not in version control)
@@ -758,6 +822,7 @@ terraform output ALL_WAREHOUSES
 <li>Module declarations for all resources (roles, users, warehouses, databases, schemas, tables, views)</li>
 <li>All resources are managed through modules - no direct resource definitions</li>
 <li>Each module handles its own privilege grants automatically</li>
+<li>Map-based configuration for each module (role_map, user_map, warehouse_map, database_map, schema_map, table_map, view_map)</li>
 </ul>
 <h4 id="providertf"><a class="header" href="#providertf"><code>provider.tf</code></a></h4>
 <p>Defines the Terraform providers:</p>
@@ -784,11 +849,33 @@ terraform output ALL_WAREHOUSES
 <p>Contains actual variable values:</p>
 <ul>
 <li><strong>Not committed to version control</strong> (in <code>.gitignore</code>)</li>
-<li>Contains sensitive credentials</li>
+<li>Contains sensitive credentials (snowflake_password, etc.)</li>
 <li>Environment-specific values</li>
+<li>Required variables: snowflake_organization, snowflake_account, snowflake_username, snowflake_password, snowflake_role, snowflake_warehouse</li>
+</ul>
+<h4 id="imported_resourcesmd"><a class="header" href="#imported_resourcesmd"><code>imported_resources.md</code></a></h4>
+<p>Documents resources that have been imported into Terraform management:</p>
+<ul>
+<li>Tracks imported resources for reference</li>
+<li>Contains import commands for future use</li>
+<li>Helps maintain awareness of manually imported resources</li>
+</ul>
+<h4 id="readmemd"><a class="header" href="#readmemd"><code>README.md</code></a></h4>
+<p>Project README file:</p>
+<ul>
+<li>Instructions for building mdBook documentation</li>
+<li>Quick start guide</li>
+<li>Project overview</li>
+</ul>
+<h4 id="booktoml"><a class="header" href="#booktoml"><code>book.toml</code></a></h4>
+<p>mdBook configuration file:</p>
+<ul>
+<li>Defines book title, description, and metadata</li>
+<li>Configures HTML output settings</li>
+<li>Sets search and theme preferences</li>
 </ul>
 <h3 id="module-structure"><a class="header" href="#module-structure">Module Structure</a></h3>
-<p>The project uses a modular architecture with three main modules:</p>
+<p>The project uses a fully modular architecture with seven main modules:</p>
 <h4 id="modulessnowflakeroles"><a class="header" href="#modulessnowflakeroles"><code>modules/snowflake/roles/</code></a></h4>
 <p>Manages Snowflake account roles:</p>
 <ul>
@@ -807,8 +894,36 @@ terraform output ALL_WAREHOUSES
 <p>Manages Snowflake warehouses:</p>
 <ul>
 <li>Creates warehouses with configurable properties</li>
-<li>Grants warehouse privileges to roles</li>
+<li>Grants warehouse privileges to roles automatically</li>
 <li>Supports multiple warehouse configurations</li>
+</ul>
+<h4 id="modulessnowflakedatabase"><a class="header" href="#modulessnowflakedatabase"><code>modules/snowflake/database/</code></a></h4>
+<p>Manages Snowflake databases:</p>
+<ul>
+<li>Creates databases with retention policies</li>
+<li>Grants database privileges to roles automatically</li>
+<li>Supports multiple databases with different configurations</li>
+</ul>
+<h4 id="modulessnowflakeschema"><a class="header" href="#modulessnowflakeschema"><code>modules/snowflake/schema/</code></a></h4>
+<p>Manages Snowflake schemas:</p>
+<ul>
+<li>Creates schemas within databases</li>
+<li>Supports managed access and transient schemas</li>
+<li>Grants schema privileges to roles automatically</li>
+</ul>
+<h4 id="modulessnowflaketables"><a class="header" href="#modulessnowflaketables"><code>modules/snowflake/tables/</code></a></h4>
+<p>Manages Snowflake tables:</p>
+<ul>
+<li>Creates tables with column definitions</li>
+<li>Supports various data types and constraints</li>
+<li>Grants table privileges to roles automatically</li>
+</ul>
+<h4 id="modulessnowflakeviews"><a class="header" href="#modulessnowflakeviews"><code>modules/snowflake/views/</code></a></h4>
+<p>Manages Snowflake views:</p>
+<ul>
+<li>Creates views with SQL statements</li>
+<li>Supports table references in SQL</li>
+<li>Grants view privileges to roles automatically</li>
 </ul>
 <h2 id="design-principles"><a class="header" href="#design-principles">Design Principles</a></h2>
 <h3 id="1-modularity"><a class="header" href="#1-modularity">1. Modularity</a></h3>
@@ -824,6 +939,10 @@ terraform output ALL_WAREHOUSES
 <li><strong>Roles Module</strong>: Handles role creation and hierarchy</li>
 <li><strong>Users Module</strong>: Handles user creation and role assignment</li>
 <li><strong>Warehouse Module</strong>: Handles warehouse creation and privileges</li>
+<li><strong>Database Module</strong>: Handles database creation and privileges</li>
+<li><strong>Schema Module</strong>: Handles schema creation and privileges</li>
+<li><strong>Tables Module</strong>: Handles table creation and privileges</li>
+<li><strong>Views Module</strong>: Handles view creation and privileges</li>
 </ul>
 <h3 id="3-provider-aliases"><a class="header" href="#3-provider-aliases">3. Provider Aliases</a></h3>
 <p>Different provider aliases for different operations:</p>
@@ -842,20 +961,19 @@ terraform output ALL_WAREHOUSES
 <p>The following dependency order is enforced:</p>
 <pre><code>Roles
   ↓
-Warehouses (may reference roles)
+Warehouses (references roles for grants)
   ↓
 Users (references roles and warehouses)
   ↓
-Databases
+Databases (references roles for grants)
   ↓
-Schemas (references databases)
+Schemas (references databases and roles for grants)
   ↓
-Tables (references schemas)
+Tables (references databases, schemas, and roles for grants)
   ↓
-Views (references tables)
-  ↓
-Grants (references all above)
+Views (references databases, schemas, tables, and roles for grants)
 </code></pre>
+<p><strong>Note:</strong> All grants are handled automatically within each module, so there are no separate grant resources in the root configuration. Each module manages its own privilege grants internally.</p>
 <h2 id="state-management-1"><a class="header" href="#state-management-1">State Management</a></h2>
 <h3 id="local-state-default"><a class="header" href="#local-state-default">Local State (Default)</a></h3>
 <ul>
@@ -1037,12 +1155,20 @@ Grants (references all above)
   role_map = { ... }
 }
 </code></pre>
-<h3 id="in-resources"><a class="header" href="#in-resources">In Resources</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "TEST_DB" {
-  name    = "TEST_DB"
-  comment = "Test database"
+<h3 id="in-modules-1"><a class="header" href="#in-modules-1">In Modules</a></h3>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
   
-  provider = snowflake.snowflake_sysadmin
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    "TEST_DB" = {
+      comment = "Test database"
+      # ... other configuration
+    }
+  }
 }
 </code></pre>
 <h2 id="why-use-provider-aliases"><a class="header" href="#why-use-provider-aliases">Why Use Provider Aliases?</a></h2>
@@ -1127,7 +1253,8 @@ Grants (references all above)
 <ul>
 <li>Learn about <a href="architecture/module-architecture.html">Module Architecture</a></li>
 <li>Review <a href="architecture/../modules/roles-module.html">Module Documentation</a></li>
-<li>Understand <a href="architecture/../resources/databases.html">Resource Dependencies</a></li>
+<li>Understand <a href="architecture/module-architecture.html">Module Architecture</a></li>
+<li>Review <a href="architecture/../modules/database-module.html">Database Module</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="module-architecture"><a class="header" href="#module-architecture">Module Architecture</a></h1>
 <p>This document explains the modular architecture of the Terraform project and how modules interact.</p>
@@ -1466,7 +1593,8 @@ Grants (references all above)
   }
 }
 </code></pre>
-<h3 id="with-parent-roles"><a class="header" href="#with-parent-roles">With Parent Roles</a></h3>
+<h3 id="with-parent-roles-actual-example"><a class="header" href="#with-parent-roles-actual-example">With Parent Roles (Actual Example)</a></h3>
+<p>This matches the actual roles in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_ROLES" {
   source = "./modules/snowflake/roles"
   
@@ -1475,16 +1603,24 @@ Grants (references all above)
   }
   
   role_map = {
-    "DATA_SCIENTIST" = {
-      comment = "Role for data scientists"
+    "ANALYST" = {
+      parent_role_name = "DATA_ENGINEER"
+      comment          = "Role for data analysts"
     },
     "DATA_ENGINEER" = {
       parent_role_name = "DATA_SCIENTIST"
       comment          = "Role for data engineers"
     },
-    "ANALYST" = {
-      parent_role_name = "DATA_ENGINEER"
-      comment          = "Role for data analysts"
+    "DATA_SCIENTIST" = {
+      comment = "Role for data scientists"
+    },
+    "MARKETING" = {
+      parent_role_name = "SYSADMIN"
+      comment          = "Role for marketing team"
+    },
+    "SALES" = {
+      parent_role_name = "SYSADMIN"
+      comment          = "Role for sales team"
     }
   }
 }
@@ -1991,6 +2127,83 @@ user_name = module.ALL_USERS.USERS.TEST_USER1.name
   }
 }
 </code></pre>
+<h3 id="actual-users-from-maintf"><a class="header" href="#actual-users-from-maintf">Actual Users from main.tf</a></h3>
+<p>Here are examples from the actual configuration:</p>
+<pre><code class="language-hcl">module "ALL_USERS" {
+  source = "./modules/snowflake/users"
+  
+  providers = {
+    snowflake = snowflake.snowflake_securityadmin
+  }
+  
+  user_map = {
+    "TEST_USER1" = {
+      first_name                     = "test"
+      last_name                      = "user1"
+      email                          = "test_user1@example.com"
+      comment                        = "User of snowflake created via Terraform"
+      disabled                       = "false"
+      default_secondary_roles_option = "NONE"
+      user_type                      = "person"
+      must_change_password           = "true"
+      disable_mfa                    = "false"
+      roles_to_assign                = [
+        module.ALL_ROLES.ROLES.SALES.name,
+        module.ALL_ROLES.ROLES.MARKETING.name
+      ]
+    },
+    "TEST_USER10" = {
+      first_name                     = "test"
+      last_name                      = "user10"
+      email                          = "test_user10@example.com"
+      comment                        = "Test User 10 of snowflake created via Terraform"
+      disabled                       = "false"
+      default_warehouse              = module.ALL_WAREHOUSES.WAREHOUSES.SALES_XSMALL_WH.name
+      default_role                   = module.ALL_ROLES.ROLES.SALES.name
+      default_secondary_roles_option = "NONE"
+      user_type                      = "person"
+      must_change_password           = "true"
+      disable_mfa                    = "false"
+      roles_to_assign                = [module.ALL_ROLES.ROLES.SALES.name]
+    },
+    "TEST_USER11" = {
+      first_name                     = "test"
+      last_name                      = "user11"
+      email                          = "test_user11@example.com"
+      comment                        = "Test User 11 of snowflake created via Terraform"
+      disabled                       = "false"
+      default_warehouse              = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_MEDIUM_WH.name
+      default_role                   = module.ALL_ROLES.ROLES.MARKETING.name
+      default_secondary_roles_option = "NONE"
+      user_type                      = "person"
+      must_change_password           = "true"
+      disable_mfa                    = "false"
+      roles_to_assign                = [module.ALL_ROLES.ROLES.MARKETING.name]
+    },
+    "TEST_USER12" = {
+      first_name                     = "test"
+      last_name                      = "user12"
+      email                          = "test_user12@example.com"
+      comment                        = "Test User 12 of snowflake created via Terraform"
+      disabled                       = "false"
+      default_secondary_roles_option = "NONE"
+      user_type                      = "legacy_service"
+      must_change_password           = "true"
+      roles_to_assign                = []
+    },
+    "DBT_DEVELOPER" = {
+      first_name  = "dbt"
+      last_name   = "developer"
+      user_type   = "service"
+      roles_to_assign = [
+        module.ALL_ROLES.ROLES.DATA_ENGINEER.name,
+        module.ALL_ROLES.ROLES.DATA_SCIENTIST.name,
+        module.ALL_ROLES.ROLES.ANALYST.name
+      ]
+    }
+  }
+}
+</code></pre>
 <h2 id="best-practices-5"><a class="header" href="#best-practices-5">Best Practices</a></h2>
 <ol>
 <li><strong>Use Descriptive Names</strong>: Use clear, descriptive usernames</li>
@@ -2342,29 +2555,77 @@ default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
   }
 }
 </code></pre>
-<h3 id="multiple-warehouses-for-different-teams"><a class="header" href="#multiple-warehouses-for-different-teams">Multiple Warehouses for Different Teams</a></h3>
+<h3 id="multiple-warehouses-for-different-teams-actual-example"><a class="header" href="#multiple-warehouses-for-different-teams-actual-example">Multiple Warehouses for Different Teams (Actual Example)</a></h3>
+<p>This matches the actual warehouses in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">warehouse_map = {
-  "MARKETING_WH" = {
-    warehouse_type = "STANDARD"
-    warehouse_generation = "2"
-    warehouse_size = "SMALL"
+  "MARKETING_XSMALL_WH" = {
+    warehouse_type                = "STANDARD"
+    warehouse_generation          = "2"
+    warehouse_max_cluster_count   = 1
+    warehouse_min_cluster_count   = 1
+    warehouse_scaling_policy      = "ECONOMY"
+    warehouse_initially_suspended = true
+    warehouse_comment             = "WAREHOUSE for Marketing team"
     role_privileges = [
       {
         account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
         privileges        = ["USAGE"]
       }
     ]
+    with_grant_option = false
   },
-  "SALES_WH" = {
-    warehouse_type = "STANDARD"
-    warehouse_generation = "2"
-    warehouse_size = "SMALL"
+  "MARKETING_MEDIUM_WH" = {
+    warehouse_type                = "STANDARD"
+    warehouse_generation          = "2"
+    warehouse_size                = "MEDIUM"
+    warehouse_max_cluster_count   = 1
+    warehouse_min_cluster_count   = 1
+    warehouse_scaling_policy      = "ECONOMY"
+    warehouse_initially_suspended = true
+    warehouse_comment             = "WAREHOUSE for Marketing team"
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false
+  },
+  "SALES_XSMALL_WH" = {
+    warehouse_type                         = "STANDARD"
+    warehouse_generation                   = "2"
+    warehouse_size                         = "SMALL"
+    warehouse_auto_suspend                 = 60
+    warehouse_auto_resume                  = true
+    warehouse_initially_suspended          = true
+    warehouse_comment                      = "WAREHOUSE for sales team"
+    warehouse_max_concurrency_level        = 8
+    warehouse_statement_timeout_in_seconds = 900
     role_privileges = [
       {
         account_role_name = module.ALL_ROLES.ROLES.SALES.name
         privileges        = ["USAGE"]
       }
     ]
+    with_grant_option = false
+  },
+  "SALES_SMALL_WH" = {
+    warehouse_type                         = "STANDARD"
+    warehouse_generation                   = "2"
+    warehouse_size                         = "SMALL"
+    warehouse_auto_suspend                 = 60
+    warehouse_auto_resume                  = true
+    warehouse_initially_suspended          = true
+    warehouse_comment                      = "WAREHOUSE for sales team"
+    warehouse_max_concurrency_level        = 8
+    warehouse_statement_timeout_in_seconds = 900
+    role_privileges = [
+      {
+        account_role_name = module.ALL_ROLES.ROLES.SALES.name
+        privileges        = ["USAGE"]
+      }
+    ]
+    with_grant_option = false
   }
 }
 </code></pre>
@@ -2634,7 +2895,8 @@ database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
   }
 }
 </code></pre>
-<h3 id="multiple-databases-for-different-teams"><a class="header" href="#multiple-databases-for-different-teams">Multiple Databases for Different Teams</a></h3>
+<h3 id="multiple-databases-for-different-teams-actual-example"><a class="header" href="#multiple-databases-for-different-teams-actual-example">Multiple Databases for Different Teams (Actual Example)</a></h3>
+<p>This matches the actual databases in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_DATABASES" {
   source = "./modules/snowflake/database"
   
@@ -2643,15 +2905,20 @@ database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
   }
   
   database_map = {
-    "SALES_DB" = {
-      comment                     = "Sales database"
+    "ANALYTICS_DB" = {
+      comment                     = "Analytics database"
       data_retention_time_in_days = 1
       role_privileges = [
         {
-          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DATA_SCIENTIST.name
           privileges        = ["USAGE"]
         }
       ]
+      with_grant_option = false
     },
     "MARKETING_DB" = {
       comment                     = "Marketing database"
@@ -2662,6 +2929,48 @@ database_name = module.ALL_DATABASES.DATABASES.ANALYTICS_DB.name
           privileges        = ["USAGE"]
         }
       ]
+      with_grant_option = false
+    },
+    "SALES_DB" = {
+      comment                     = "Sales database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+      with_grant_option = false
+    },
+    "TEST_DB" = {
+      comment                     = "Test database created via Terraform"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
+        }
+      ]
+      with_grant_option = false
+    },
+    "TEST_DB2" = {
+      comment                     = "Test database 2 created via Terraform"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        },
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
+        }
+      ]
+      with_grant_option = false
     }
   }
 }
@@ -2937,7 +3246,8 @@ schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
   }
 }
 </code></pre>
-<h3 id="secure-schema-with-managed-access"><a class="header" href="#secure-schema-with-managed-access">Secure Schema with Managed Access</a></h3>
+<h3 id="secure-schema-with-managed-access-actual-example"><a class="header" href="#secure-schema-with-managed-access-actual-example">Secure Schema with Managed Access (Actual Example)</a></h3>
+<p>This matches the actual schemas in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_SCHEMAS" {
   source = "./modules/snowflake/schema"
   
@@ -2946,16 +3256,42 @@ schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
   }
   
   schema_map = {
-    "SECURE_DATA" = {
-      database_name               = module.ALL_DATABASES.DATABASES.PRODUCTION_DB.name
+    "SALES_SCHEMA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.SALES_DB.name
       with_managed_access         = true
-      is_transient                = false
-      comment                     = "Secure schema with managed access"
-      data_retention_time_in_days = 30
+      is_transient                = true
+      comment                     = "Schema for sales data"
+      data_retention_time_in_days = 1
       role_privileges = [
         {
-          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
-          privileges        = ["USAGE", "CREATE TABLE", "CREATE VIEW"]
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    },
+    "MARKETING_SCHEMA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.MARKETING_DB.name
+      with_managed_access         = true
+      is_transient                = true
+      comment                     = "Schema for marketing data"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    },
+    "ADS" = {
+      database_name               = module.ALL_DATABASES.DATABASES.TEST_DB.name
+      with_managed_access         = true
+      is_transient                = true
+      comment                     = "Schema for ads data"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
         }
       ]
     }
@@ -3304,7 +3640,8 @@ table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
   }
 }
 </code></pre>
-<h3 id="table-with-variant-column"><a class="header" href="#table-with-variant-column">Table with Variant Column</a></h3>
+<h3 id="table-with-variant-column-actual-example"><a class="header" href="#table-with-variant-column-actual-example">Table with Variant Column (Actual Example)</a></h3>
+<p>This matches the actual table in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_TABLES" {
   source = "./modules/snowflake/tables"
   
@@ -3344,6 +3681,7 @@ table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
           privileges        = ["SELECT"]
         }
       ]
+      with_grant_option = false
     }
   }
 }
@@ -3488,7 +3826,8 @@ table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
   }
 }
 </code></pre>
-<h3 id="aggregated-view"><a class="header" href="#aggregated-view">Aggregated View</a></h3>
+<h3 id="aggregated-view-actual-example"><a class="header" href="#aggregated-view-actual-example">Aggregated View (Actual Example)</a></h3>
+<p>This matches the actual view in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_VIEWS" {
   source = "./modules/snowflake/views"
   
@@ -3501,11 +3840,7 @@ table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
       database_name = module.ALL_DATABASES.DATABASES.TEST_DB.name
       schema_name   = module.ALL_SCHEMAS.SCHEMAS.ADS.name
       statement     = &lt;&lt;-SQL
-        SELECT 
-          AD_DATE, 
-          COUNT(1) AS COUNT_ADS 
-        FROM ${module.ALL_TABLES.TABLES.FACEBOOK_ADS.name}
-        GROUP BY AD_DATE;
+        select AD_DATE, COUNT(1) AS COUNT_ADS from ${module.ALL_TABLES.TABLES.FACEBOOK_ADS.name} GROUP BY AD_DATE;
       SQL
       comment       = "Aggregated view for facebook ads"
       role_privileges = [
@@ -3514,6 +3849,7 @@ table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
           privileges        = ["SELECT"]
         }
       ]
+      with_grant_option = false
     }
   }
 }
@@ -3683,7 +4019,7 @@ SQL
   }
 }
 </code></pre>
-<h3 id="aggregated-view-1"><a class="header" href="#aggregated-view-1">Aggregated View</a></h3>
+<h3 id="aggregated-view"><a class="header" href="#aggregated-view">Aggregated View</a></h3>
 <pre><code class="language-hcl">module "ALL_VIEWS" {
   source = "./modules/snowflake/views"
   
@@ -4505,22 +4841,33 @@ table_map = {
 <h2 id="troubleshooting-common-issues"><a class="header" href="#troubleshooting-common-issues">Troubleshooting Common Issues</a></h2>
 <h3 id="issue-resource-already-exists-1"><a class="header" href="#issue-resource-already-exists-1">Issue: Resource Already Exists</a></h3>
 <p><strong>Solution:</strong> Import the existing resource:</p>
-<pre><code class="language-bash">terraform import snowflake_database.MY_DB "MY_DB"
+<pre><code class="language-bash"># For modules, use the module path
+terraform import module.ALL_DATABASES.snowflake_database.DATABASES["MY_DB"] "MY_DB"
+terraform import module.ALL_SCHEMAS.snowflake_schema.SCHEMAS["MY_SCHEMA"] "MY_DB.MY_SCHEMA"
+terraform import module.ALL_TABLES.snowflake_table.TABLES["MY_TABLE"] "MY_DB.MY_SCHEMA.MY_TABLE"
 </code></pre>
 <h3 id="issue-dependency-error"><a class="header" href="#issue-dependency-error">Issue: Dependency Error</a></h3>
-<p><strong>Solution:</strong> Ensure resources are created in the correct order. Use <code>depends_on</code> if needed:</p>
-<pre><code class="language-hcl">resource "snowflake_view" "MY_VIEW" {
-  # ... configuration ...
-  depends_on = [snowflake_table.MY_TABLE]
+<p><strong>Solution:</strong> Ensure resources are created in the correct order. Terraform automatically detects dependencies from module references and SQL statements:</p>
+<pre><code class="language-hcl">view_map = {
+  "MY_VIEW" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+    statement     = "SELECT * FROM ${module.ALL_TABLES.TABLES.MY_TABLE.name}"
+    # Dependencies are automatically detected from module references
+    # ... other configuration
+  }
 }
 </code></pre>
 <h3 id="issue-invalid-reference"><a class="header" href="#issue-invalid-reference">Issue: Invalid Reference</a></h3>
 <p><strong>Solution:</strong> Verify module outputs are referenced correctly:</p>
 <pre><code class="language-hcl"># Correct
 roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
+database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
 
 # Incorrect
 roles_to_assign = [module.ALL_ROLES.ANALYST]  # Missing .ROLES and .name
+database_name = snowflake_database.MY_DB.name  # Should use module output
 </code></pre>
 <h2 id="next-steps-7"><a class="header" href="#next-steps-7">Next Steps</a></h2>
 <ul>
@@ -4738,74 +5085,118 @@ snowflake_warehouse    = "PROD_WH"
 </code></pre>
 <h2 id="customizing-databases"><a class="header" href="#customizing-databases">Customizing Databases</a></h2>
 <h3 id="database-with-custom-retention"><a class="header" href="#database-with-custom-retention">Database with Custom Retention</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "CUSTOM_DB" {
-  name                        = "CUSTOM_DB"
-  comment                     = "Custom database with 30-day retention"
-  data_retention_time_in_days = 30
-  provider                    = snowflake.snowflake_sysadmin
+<p>Add to the <code>database_map</code> in the <code>ALL_DATABASES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "CUSTOM_DB" = {
+      comment                     = "Custom database with 30-day retention"
+      data_retention_time_in_days = 30
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h2 id="customizing-schemas"><a class="header" href="#customizing-schemas">Customizing Schemas</a></h2>
 <h3 id="schema-with-managed-access-1"><a class="header" href="#schema-with-managed-access-1">Schema with Managed Access</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "SECURE_SCHEMA" {
-  name                = "SECURE_SCHEMA"
-  database            = snowflake_database.CUSTOM_DB.name
-  with_managed_access = true
-  comment             = "Schema with managed access for security"
-  provider            = snowflake.snowflake_sysadmin
+<p>Add to the <code>schema_map</code> in the <code>ALL_SCHEMAS</code> module:</p>
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "SECURE_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.CUSTOM_DB.name
+      with_managed_access = true
+      is_transient        = false
+      comment             = "Schema with managed access for security"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h3 id="transient-schema"><a class="header" href="#transient-schema">Transient Schema</a></h3>
-<pre><code class="language-hcl">resource "snowflake_schema" "TEMP_SCHEMA" {
-  name         = "TEMP_SCHEMA"
-  database     = snowflake_database.CUSTOM_DB.name
-  is_transient = true
-  comment      = "Temporary schema without Time Travel"
-  provider     = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_SCHEMAS" {
+  source = "./modules/snowflake/schema"
+  
+  schema_map = {
+    # ... existing schemas ...
+    "TEMP_SCHEMA" = {
+      database_name       = module.ALL_DATABASES.DATABASES.CUSTOM_DB.name
+      with_managed_access = false
+      is_transient        = true
+      comment             = "Temporary schema without Time Travel"
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
 }
 </code></pre>
 <h2 id="customizing-tables"><a class="header" href="#customizing-tables">Customizing Tables</a></h2>
 <h3 id="table-with-multiple-columns"><a class="header" href="#table-with-multiple-columns">Table with Multiple Columns</a></h3>
-<pre><code class="language-hcl">resource "snowflake_table" "CUSTOM_TABLE" {
-  database = snowflake_database.CUSTOM_DB.name
-  schema   = snowflake_schema.PUBLIC.name
-  name     = "CUSTOM_TABLE"
-  comment  = "Custom table with various column types"
+<p>Add to the <code>table_map</code> in the <code>ALL_TABLES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_TABLES" {
+  source = "./modules/snowflake/tables"
   
-  column {
-    name     = "ID"
-    type     = "NUMBER(38,0)"
-    nullable = false
-    comment  = "Primary key"
+  table_map = {
+    # ... existing tables ...
+    "CUSTOM_TABLE" = {
+      database_name = module.ALL_DATABASES.DATABASES.CUSTOM_DB.name
+      schema_name   = module.ALL_SCHEMAS.SCHEMAS.PUBLIC.name
+      comment       = "Custom table with various column types"
+      columns = [
+        {
+          name     = "ID"
+          type     = "NUMBER(38,0)"
+          nullable = false
+          comment  = "Primary key"
+        },
+        {
+          name     = "NAME"
+          type     = "VARCHAR(255)"
+          nullable = false
+        },
+        {
+          name     = "CREATED_AT"
+          type     = "TIMESTAMP_NTZ(9)"
+          nullable = false
+        },
+        {
+          name     = "AMOUNT"
+          type     = "NUMBER(10,2)"
+          nullable = true
+        },
+        {
+          name     = "METADATA"
+          type     = "VARIANT"
+          nullable = true
+          comment  = "Additional metadata in JSON format"
+        }
+      ]
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.ANALYST.name
+          privileges        = ["SELECT"]
+        }
+      ]
+    }
   }
-  
-  column {
-    name     = "NAME"
-    type     = "VARCHAR(255)"
-    nullable = false
-  }
-  
-  column {
-    name     = "CREATED_AT"
-    type     = "TIMESTAMP_NTZ(9)"
-    nullable = false
-    default  = "CURRENT_TIMESTAMP()"
-  }
-  
-  column {
-    name     = "AMOUNT"
-    type     = "NUMBER(10,2)"
-    nullable = true
-  }
-  
-  column {
-    name     = "METADATA"
-    type     = "VARIANT"
-    nullable = true
-    comment  = "Additional metadata in JSON format"
-  }
-  
-  provider = snowflake.snowflake_sysadmin
 }
 </code></pre>
 <h2 id="using-variables-for-customization"><a class="header" href="#using-variables-for-customization">Using Variables for Customization</a></h2>
@@ -4848,11 +5239,21 @@ warehouse_size = "LARGE"
 </code></pre>
 <h2 id="conditional-configuration"><a class="header" href="#conditional-configuration">Conditional Configuration</a></h2>
 <h3 id="using-count"><a class="header" href="#using-count">Using Count</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "DEV_DB" {
-  count   = var.environment == "dev" ? 1 : 0
-  name    = "DEV_DB"
-  comment = "Development database"
-  provider = snowflake.snowflake_sysadmin
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = var.environment == "dev" ? {
+    "DEV_DB" = {
+      comment = "Development database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.DEVELOPER.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  } : {}
 }
 </code></pre>
 <h3 id="using-for_each-with-conditions"><a class="header" href="#using-for_each-with-conditions">Using for_each with Conditions</a></h3>
@@ -5219,20 +5620,24 @@ terraform plan
 </code></pre>
 <p><strong>Note:</strong> All grants are automatically handled by the modules - no separate grant resources needed!</p>
 <h2 id="importing-existing-resources"><a class="header" href="#importing-existing-resources">Importing Existing Resources</a></h2>
-<p>If a resource already exists in Snowflake, import it:</p>
-<pre><code class="language-bash"># Import database
-terraform import snowflake_database.EXISTING_DB "EXISTING_DB"
+<p>If a resource already exists in Snowflake, import it into the appropriate module:</p>
+<pre><code class="language-bash"># Import database into module
+terraform import module.ALL_DATABASES.snowflake_database.DATABASES["EXISTING_DB"] "EXISTING_DB"
 
-# Import schema
-terraform import snowflake_schema.EXISTING_SCHEMA "DB.SCHEMA"
+# Import schema into module
+terraform import module.ALL_SCHEMAS.snowflake_schema.SCHEMAS["EXISTING_SCHEMA"] "DB.EXISTING_SCHEMA"
 
-# Import table
-terraform import snowflake_table.EXISTING_TABLE "DB.SCHEMA.TABLE"
+# Import table into module
+terraform import module.ALL_TABLES.snowflake_table.TABLES["EXISTING_TABLE"] "DB.SCHEMA.EXISTING_TABLE"
 
-# Import view
-terraform import snowflake_view.EXISTING_VIEW "DB.SCHEMA.VIEW"
+# Import view into module
+terraform import module.ALL_VIEWS.snowflake_view.VIEWS["EXISTING_VIEW"] "DB.SCHEMA.EXISTING_VIEW"
+
+# Import warehouse into module
+terraform import module.ALL_WAREHOUSES.snowflake_warehouse.WAREHOUSES["EXISTING_WH"] "EXISTING_WH"
 </code></pre>
-<p>Then add the resource definition to <code>main.tf</code> matching the imported resource.</p>
+<p>Then add the resource configuration to the appropriate module’s map in <code>main.tf</code> matching the imported resource.</p>
+<p><strong>Note:</strong> The project includes an <code>imported_resources.md</code> file to track resources that have been imported into Terraform management. Update this file when importing new resources.</p>
 <h2 id="best-practices-12"><a class="header" href="#best-practices-12">Best Practices</a></h2>
 <ol>
 <li><strong>Follow Naming Conventions</strong>: Use consistent naming patterns</li>
@@ -5328,12 +5733,21 @@ terraform import snowflake_view.EXISTING_VIEW "DB.SCHEMA.VIEW"
 <h3 id="1-naming-conventions"><a class="header" href="#1-naming-conventions">1. Naming Conventions</a></h3>
 <p><strong>Use Consistent Naming:</strong></p>
 <pre><code class="language-hcl"># Good: Clear, descriptive names
-resource "snowflake_database" "SALES_DATABASE" { ... }
-resource "snowflake_schema" "ORDERS_SCHEMA" { ... }
+database_map = {
+  "SALES_DB" = { ... }
+  "MARKETING_DB" = { ... }
+}
+
+schema_map = {
+  "SALES_SCHEMA" = { ... }
+  "ORDERS_SCHEMA" = { ... }
+}
 
 # Bad: Unclear names
-resource "snowflake_database" "DB1" { ... }
-resource "snowflake_schema" "S1" { ... }
+database_map = {
+  "DB1" = { ... }
+  "DB2" = { ... }
+}
 </code></pre>
 <p><strong>Follow Patterns:</strong></p>
 <ul>
@@ -5343,10 +5757,12 @@ resource "snowflake_schema" "S1" { ... }
 </ul>
 <h3 id="2-comments"><a class="header" href="#2-comments">2. Comments</a></h3>
 <p><strong>Always Add Comments:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_database" "SALES_DB" {
-  name    = "SALES_DB"
-  comment = "Sales database for order processing"  # Good: Descriptive
-  # Bad: Missing or vague comments
+<pre><code class="language-hcl">database_map = {
+  "SALES_DB" = {
+    comment = "Sales database for order processing"  # Good: Descriptive
+    # Bad: Missing or vague comments
+    # ... other configuration
+  }
 }
 </code></pre>
 <h3 id="3-variables"><a class="header" href="#3-variables">3. Variables</a></h3>
@@ -5359,14 +5775,28 @@ warehouse_size = "SMALL"
 </code></pre>
 <h3 id="4-resource-organization"><a class="header" href="#4-resource-organization">4. Resource Organization</a></h3>
 <p><strong>Group Related Resources:</strong></p>
-<pre><code class="language-hcl"># Group by domain/team
+<pre><code class="language-hcl"># Group by domain/team in module maps
 # Sales resources
-resource "snowflake_database" "SALES_DB" { ... }
-resource "snowflake_schema" "SALES_SCHEMA" { ... }
+database_map = {
+  "SALES_DB" = { ... }
+}
+schema_map = {
+  "SALES_SCHEMA" = {
+    database_name = module.ALL_DATABASES.DATABASES.SALES_DB.name
+    # ... other configuration
+  }
+}
 
 # Marketing resources
-resource "snowflake_database" "MARKETING_DB" { ... }
-resource "snowflake_schema" "MARKETING_SCHEMA" { ... }
+database_map = {
+  "MARKETING_DB" = { ... }
+}
+schema_map = {
+  "MARKETING_SCHEMA" = {
+    database_name = module.ALL_DATABASES.DATABASES.MARKETING_DB.name
+    # ... other configuration
+  }
+}
 </code></pre>
 <h2 id="module-best-practices"><a class="header" href="#module-best-practices">Module Best Practices</a></h2>
 <h3 id="1-module-design"><a class="header" href="#1-module-design">1. Module Design</a></h3>
@@ -5554,9 +5984,14 @@ column {
 </code></pre>
 <h3 id="4-view-dependencies"><a class="header" href="#4-view-dependencies">4. View Dependencies</a></h3>
 <p><strong>Declare Dependencies:</strong></p>
-<pre><code class="language-hcl">resource "snowflake_view" "MY_VIEW" {
-  depends_on = [snowflake_table.MY_TABLE]  # Explicit dependency
-  # ... other config
+<pre><code class="language-hcl">view_map = {
+  "MY_VIEW" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+    statement     = "SELECT * FROM ${module.ALL_TABLES.TABLES.MY_TABLE.name}"
+    # Terraform automatically detects dependencies from SQL statement
+    # ... other config
+  }
 }
 </code></pre>
 <h2 id="workflow-best-practices"><a class="header" href="#workflow-best-practices">Workflow Best Practices</a></h2>
@@ -6225,26 +6660,32 @@ warehouse_name = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
 # Use in user default
 default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MARKETING_XSMALL_WH.name
 </code></pre>
-<h2 id="resource-outputs"><a class="header" href="#resource-outputs">Resource Outputs</a></h2>
-<p>Individual resources also have outputs that can be referenced:</p>
+<h2 id="module-resource-outputs"><a class="header" href="#module-resource-outputs">Module Resource Outputs</a></h2>
+<p>Module resources have outputs that can be referenced through module outputs:</p>
 <h3 id="database-outputs"><a class="header" href="#database-outputs">Database Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_database.TEST_DB.name
-snowflake_database.TEST_DB.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_DATABASES.DATABASES.TEST_DB.name
+module.ALL_DATABASES.DATABASES.TEST_DB.comment
 </code></pre>
 <h3 id="schema-outputs"><a class="header" href="#schema-outputs">Schema Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_schema.ADS.name
-snowflake_schema.ADS.fully_qualified_name  # "DATABASE.SCHEMA"
-snowflake_schema.ADS.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_SCHEMAS.SCHEMAS.ADS.name
+module.ALL_SCHEMAS.SCHEMAS.ADS.database
+module.ALL_SCHEMAS.SCHEMAS.ADS.comment
 </code></pre>
 <h3 id="table-outputs"><a class="header" href="#table-outputs">Table Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_table.FACEBOOK_ADS.name
-snowflake_table.FACEBOOK_ADS.fully_qualified_name  # "DATABASE.SCHEMA.TABLE"
-snowflake_table.FACEBOOK_ADS.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.name
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.database
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.schema
+module.ALL_TABLES.TABLES.FACEBOOK_ADS.comment
 </code></pre>
 <h3 id="view-outputs"><a class="header" href="#view-outputs">View Outputs</a></h3>
-<pre><code class="language-hcl">snowflake_view.AGG_FACEBOOK_ADS.name
-snowflake_view.AGG_FACEBOOK_ADS.fully_qualified_name  # "DATABASE.SCHEMA.VIEW"
-snowflake_view.AGG_FACEBOOK_ADS.comment
+<pre><code class="language-hcl"># Access through module output
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.name
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.database
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.schema
+module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.comment
 </code></pre>
 <h2 id="using-outputs"><a class="header" href="#using-outputs">Using Outputs</a></h2>
 <h3 id="in-terraform-configuration"><a class="header" href="#in-terraform-configuration">In Terraform Configuration</a></h3>
@@ -6252,9 +6693,17 @@ snowflake_view.AGG_FACEBOOK_ADS.comment
 roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
 default_warehouse = module.ALL_WAREHOUSES.WAREHOUSES.MY_WH.name
 
-# Reference resource outputs
-schema_name = snowflake_schema.ADS.fully_qualified_name
-object_name = snowflake_table.FACEBOOK_ADS.fully_qualified_name
+# Reference database outputs
+database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+
+# Reference schema outputs
+schema_name = module.ALL_SCHEMAS.SCHEMAS.ADS.name
+
+# Reference table outputs
+table_name = module.ALL_TABLES.TABLES.FACEBOOK_ADS.name
+
+# Reference view outputs
+view_name = module.ALL_VIEWS.VIEWS.AGG_FACEBOOK_ADS.name
 </code></pre>
 <h3 id="in-terraform-cli"><a class="header" href="#in-terraform-cli">In Terraform CLI</a></h3>
 <pre><code class="language-bash"># View all outputs
@@ -6302,8 +6751,8 @@ WH_NAME=$(terraform output -raw ALL_WAREHOUSES | jq -r '.WAREHOUSES.MY_WH.name')
 <pre><code class="language-hcl">output "DATABASE_NAMES" {
   description = "List of all database names"
   value       = [
-    snowflake_database.TEST_DB.name,
-    snowflake_database.TEST_DB2.name
+    module.ALL_DATABASES.DATABASES.TEST_DB.name,
+    module.ALL_DATABASES.DATABASES.TEST_DB2.name
   ]
 }
 

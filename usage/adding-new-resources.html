@@ -482,20 +482,24 @@ terraform plan
 </code></pre>
 <p><strong>Note:</strong> All grants are automatically handled by the modules - no separate grant resources needed!</p>
 <h2 id="importing-existing-resources"><a class="header" href="#importing-existing-resources">Importing Existing Resources</a></h2>
-<p>If a resource already exists in Snowflake, import it:</p>
-<pre><code class="language-bash"># Import database
-terraform import snowflake_database.EXISTING_DB "EXISTING_DB"
+<p>If a resource already exists in Snowflake, import it into the appropriate module:</p>
+<pre><code class="language-bash"># Import database into module
+terraform import module.ALL_DATABASES.snowflake_database.DATABASES["EXISTING_DB"] "EXISTING_DB"
 
-# Import schema
-terraform import snowflake_schema.EXISTING_SCHEMA "DB.SCHEMA"
+# Import schema into module
+terraform import module.ALL_SCHEMAS.snowflake_schema.SCHEMAS["EXISTING_SCHEMA"] "DB.EXISTING_SCHEMA"
 
-# Import table
-terraform import snowflake_table.EXISTING_TABLE "DB.SCHEMA.TABLE"
+# Import table into module
+terraform import module.ALL_TABLES.snowflake_table.TABLES["EXISTING_TABLE"] "DB.SCHEMA.EXISTING_TABLE"
 
-# Import view
-terraform import snowflake_view.EXISTING_VIEW "DB.SCHEMA.VIEW"
+# Import view into module
+terraform import module.ALL_VIEWS.snowflake_view.VIEWS["EXISTING_VIEW"] "DB.SCHEMA.EXISTING_VIEW"
+
+# Import warehouse into module
+terraform import module.ALL_WAREHOUSES.snowflake_warehouse.WAREHOUSES["EXISTING_WH"] "EXISTING_WH"
 </code></pre>
-<p>Then add the resource definition to <code>main.tf</code> matching the imported resource.</p>
+<p>Then add the resource configuration to the appropriate module’s map in <code>main.tf</code> matching the imported resource.</p>
+<p><strong>Note:</strong> The project includes an <code>imported_resources.md</code> file to track resources that have been imported into Terraform management. Update this file when importing new resources.</p>
 <h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
 <ol>
 <li><strong>Follow Naming Conventions</strong>: Use consistent naming patterns</li>

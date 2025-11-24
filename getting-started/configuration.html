@@ -172,6 +172,7 @@ snowflake_password     = "YOUR_PASSWORD"
 snowflake_role         = "ACCOUNTADMIN"
 snowflake_warehouse    = "COMPUTE_WH"
 </code></pre>
+<p><strong>Note:</strong> All variables are defined in <code>variables.tf</code>. The <code>snowflake_warehouse</code> variable has a default value of <code>"COMPUTE_WH"</code>, so it’s optional if you’re using the default warehouse.</p>
 <h3 id="variable-descriptions"><a class="header" href="#variable-descriptions">Variable Descriptions</a></h3>
 <div class="table-wrapper"><table><thead><tr><th>Variable</th><th>Description</th><th>Example</th></tr></thead><tbody>
 <tr><td><code>snowflake_organization</code></td><td>Your Snowflake organization identifier</td><td><code>XKVLJOE</code></td></tr>
@@ -238,12 +239,14 @@ export TF_VAR_snowflake_warehouse="COMPUTE_WH"
 <li>Google Secret Manager</li>
 </ul>
 <h2 id="customizing-infrastructure"><a class="header" href="#customizing-infrastructure">Customizing Infrastructure</a></h2>
+<p>All infrastructure is customized by editing the module maps in <code>main.tf</code>. See the <a href="../usage/customizing-configuration.html">Usage Guide</a> for detailed examples.</p>
 <h3 id="modifying-roles"><a class="header" href="#modifying-roles">Modifying Roles</a></h3>
-<p>Edit the <code>role_map</code> in <code>main.tf</code>:</p>
+<p>Edit the <code>role_map</code> in the <code>ALL_ROLES</code> module:</p>
 <pre><code class="language-hcl">module "ALL_ROLES" {
   source = "./modules/snowflake/roles"
   
   role_map = {
+    # ... existing roles ...
     "YOUR_ROLE" = {
       parent_role_name = "SYSADMIN"
       comment          = "Your role description"
@@ -252,11 +255,12 @@ export TF_VAR_snowflake_warehouse="COMPUTE_WH"
 }
 </code></pre>
 <h3 id="modifying-users"><a class="header" href="#modifying-users">Modifying Users</a></h3>
-<p>Edit the <code>user_map</code> in <code>main.tf</code>:</p>
+<p>Edit the <code>user_map</code> in the <code>ALL_USERS</code> module:</p>
 <pre><code class="language-hcl">module "ALL_USERS" {
   source = "./modules/snowflake/users"
   
   user_map = {
+    # ... existing users ...
     "YOUR_USER" = {
       first_name  = "John"
       last_name   = "Doe"
@@ -268,20 +272,48 @@ export TF_VAR_snowflake_warehouse="COMPUTE_WH"
 }
 </code></pre>
 <h3 id="modifying-warehouses"><a class="header" href="#modifying-warehouses">Modifying Warehouses</a></h3>
-<p>Edit the <code>warehouse_map</code> in <code>main.tf</code>:</p>
+<p>Edit the <code>warehouse_map</code> in the <code>ALL_WAREHOUSES</code> module:</p>
 <pre><code class="language-hcl">module "ALL_WAREHOUSES" {
   source = "./modules/snowflake/warehouse"
   
   warehouse_map = {
+    # ... existing warehouses ...
     "YOUR_WAREHOUSE" = {
       warehouse_type = "STANDARD"
       warehouse_generation = "2"
       warehouse_size = "SMALL"
-      # ... other configuration
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.YOUR_ROLE.name
+          privileges        = ["USAGE"]
+        }
+      ]
     }
   }
 }
 </code></pre>
+<h3 id="modifying-databases"><a class="header" href="#modifying-databases">Modifying Databases</a></h3>
+<p>Edit the <code>database_map</code> in the <code>ALL_DATABASES</code> module:</p>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
+  
+  database_map = {
+    # ... existing databases ...
+    "YOUR_DB" = {
+      comment                     = "Your database"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.YOUR_ROLE.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+<h3 id="modifying-schemas-tables-and-views"><a class="header" href="#modifying-schemas-tables-and-views">Modifying Schemas, Tables, and Views</a></h3>
+<p>Similarly, edit the <code>schema_map</code>, <code>table_map</code>, and <code>view_map</code> in their respective modules. See the <a href="../modules/database-module.html">Modules</a> documentation for detailed examples.</p>
 <h2 id="validating-configuration"><a class="header" href="#validating-configuration">Validating Configuration</a></h2>
 <p>After configuring variables, validate your setup:</p>
 <pre><code class="language-bash"># Validate syntax

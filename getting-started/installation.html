@@ -172,12 +172,20 @@ cd terraform
 ├── variables.tf
 ├── outputs.tf
 ├── terraform.tfvars
+├── book.toml
+├── README.md
+├── imported_resources.md
+├── .gitignore
 ├── modules/
 │   └── snowflake/
 │       ├── roles/
 │       ├── users/
-│       └── warehouse/
-└── .gitignore
+│       ├── warehouse/
+│       ├── database/
+│       ├── schema/
+│       ├── tables/
+│       └── views/
+└── src/                    # mdBook documentation source
 </code></pre>
 <h2 id="step-3-initialize-terraform"><a class="header" href="#step-3-initialize-terraform">Step 3: Initialize Terraform</a></h2>
 <p>Initialize Terraform to download the required providers:</p>

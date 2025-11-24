@@ -522,22 +522,33 @@ table_map = {
 <h2 id="troubleshooting-common-issues"><a class="header" href="#troubleshooting-common-issues">Troubleshooting Common Issues</a></h2>
 <h3 id="issue-resource-already-exists"><a class="header" href="#issue-resource-already-exists">Issue: Resource Already Exists</a></h3>
 <p><strong>Solution:</strong> Import the existing resource:</p>
-<pre><code class="language-bash">terraform import snowflake_database.MY_DB "MY_DB"
+<pre><code class="language-bash"># For modules, use the module path
+terraform import module.ALL_DATABASES.snowflake_database.DATABASES["MY_DB"] "MY_DB"
+terraform import module.ALL_SCHEMAS.snowflake_schema.SCHEMAS["MY_SCHEMA"] "MY_DB.MY_SCHEMA"
+terraform import module.ALL_TABLES.snowflake_table.TABLES["MY_TABLE"] "MY_DB.MY_SCHEMA.MY_TABLE"
 </code></pre>
 <h3 id="issue-dependency-error"><a class="header" href="#issue-dependency-error">Issue: Dependency Error</a></h3>
-<p><strong>Solution:</strong> Ensure resources are created in the correct order. Use <code>depends_on</code> if needed:</p>
-<pre><code class="language-hcl">resource "snowflake_view" "MY_VIEW" {
-  # ... configuration ...
-  depends_on = [snowflake_table.MY_TABLE]
+<p><strong>Solution:</strong> Ensure resources are created in the correct order. Terraform automatically detects dependencies from module references and SQL statements:</p>
+<pre><code class="language-hcl">view_map = {
+  "MY_VIEW" = {
+    database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+    schema_name   = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
+    statement     = "SELECT * FROM ${module.ALL_TABLES.TABLES.MY_TABLE.name}"
+    # Dependencies are automatically detected from module references
+    # ... other configuration
+  }
 }
 </code></pre>
 <h3 id="issue-invalid-reference"><a class="header" href="#issue-invalid-reference">Issue: Invalid Reference</a></h3>
 <p><strong>Solution:</strong> Verify module outputs are referenced correctly:</p>
 <pre><code class="language-hcl"># Correct
 roles_to_assign = [module.ALL_ROLES.ROLES.ANALYST.name]
+database_name = module.ALL_DATABASES.DATABASES.MY_DB.name
+schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
 
 # Incorrect
 roles_to_assign = [module.ALL_ROLES.ANALYST]  # Missing .ROLES and .name
+database_name = snowflake_database.MY_DB.name  # Should use module output
 </code></pre>
 <h2 id="next-steps"><a class="header" href="#next-steps">Next Steps</a></h2>
 <ul>

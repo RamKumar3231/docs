@@ -195,7 +195,8 @@
   }
 }
 </code></pre>
-<h3 id="aggregated-view"><a class="header" href="#aggregated-view">Aggregated View</a></h3>
+<h3 id="aggregated-view-actual-example"><a class="header" href="#aggregated-view-actual-example">Aggregated View (Actual Example)</a></h3>
+<p>This matches the actual view in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_VIEWS" {
   source = "./modules/snowflake/views"
   
@@ -208,11 +209,7 @@
       database_name = module.ALL_DATABASES.DATABASES.TEST_DB.name
       schema_name   = module.ALL_SCHEMAS.SCHEMAS.ADS.name
       statement     = &lt;&lt;-SQL
-        SELECT 
-          AD_DATE, 
-          COUNT(1) AS COUNT_ADS 
-        FROM ${module.ALL_TABLES.TABLES.FACEBOOK_ADS.name}
-        GROUP BY AD_DATE;
+        select AD_DATE, COUNT(1) AS COUNT_ADS from ${module.ALL_TABLES.TABLES.FACEBOOK_ADS.name} GROUP BY AD_DATE;
       SQL
       comment       = "Aggregated view for facebook ads"
       role_privileges = [
@@ -221,6 +218,7 @@
           privileges        = ["SELECT"]
         }
       ]
+      with_grant_option = false
     }
   }
 }
@@ -390,7 +388,7 @@ SQL
   }
 }
 </code></pre>
-<h3 id="aggregated-view-1"><a class="header" href="#aggregated-view-1">Aggregated View</a></h3>
+<h3 id="aggregated-view"><a class="header" href="#aggregated-view">Aggregated View</a></h3>
 <pre><code class="language-hcl">module "ALL_VIEWS" {
   source = "./modules/snowflake/views"
   

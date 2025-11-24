@@ -270,12 +270,20 @@
   role_map = { ... }
 }
 </code></pre>
-<h3 id="in-resources"><a class="header" href="#in-resources">In Resources</a></h3>
-<pre><code class="language-hcl">resource "snowflake_database" "TEST_DB" {
-  name    = "TEST_DB"
-  comment = "Test database"
+<h3 id="in-modules-1"><a class="header" href="#in-modules-1">In Modules</a></h3>
+<pre><code class="language-hcl">module "ALL_DATABASES" {
+  source = "./modules/snowflake/database"
   
-  provider = snowflake.snowflake_sysadmin
+  providers = {
+    snowflake = snowflake.snowflake_sysadmin
+  }
+  
+  database_map = {
+    "TEST_DB" = {
+      comment = "Test database"
+      # ... other configuration
+    }
+  }
 }
 </code></pre>
 <h2 id="why-use-provider-aliases"><a class="header" href="#why-use-provider-aliases">Why Use Provider Aliases?</a></h2>
@@ -360,7 +368,8 @@
 <ul>
 <li>Learn about <a href="module-architecture.html">Module Architecture</a></li>
 <li>Review <a href="../modules/roles-module.html">Module Documentation</a></li>
-<li>Understand <a href="../resources/databases.html">Resource Dependencies</a></li>
+<li>Understand <a href="module-architecture.html">Module Architecture</a></li>
+<li>Review <a href="../modules/database-module.html">Database Module</a></li>
 </ul>
 
                     </main>

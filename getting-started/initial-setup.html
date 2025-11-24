@@ -213,39 +213,60 @@ You have reviewed the configuration in <code>main.tf</code></li>
 <li><strong>Roles</strong> (via <code>ALL_ROLES</code> module)</li>
 <li><strong>Warehouses</strong> (via <code>ALL_WAREHOUSES</code> module)</li>
 <li><strong>Users</strong> (via <code>ALL_USERS</code> module)</li>
-<li><strong>Databases</strong> (<code>TEST_DB</code>, <code>TEST_DB2</code>)</li>
-<li><strong>Schemas</strong> (<code>ADS</code>)</li>
-<li><strong>Tables</strong> (<code>FACEBOOK_ADS</code>)</li>
-<li><strong>Views</strong> (<code>AGG_FACEBOOK_ADS</code>)</li>
-<li><strong>Grants</strong> (various privilege grants)</li>
+<li><strong>Databases</strong> (via <code>ALL_DATABASES</code> module with automatic grants)</li>
+<li><strong>Schemas</strong> (via <code>ALL_SCHEMAS</code> module with automatic grants)</li>
+<li><strong>Tables</strong> (via <code>ALL_TABLES</code> module with automatic grants)</li>
+<li><strong>Views</strong> (via <code>ALL_VIEWS</code> module with automatic grants)</li>
 </ol>
 <h3 id="expected-output"><a class="header" href="#expected-output">Expected Output</a></h3>
 <pre><code>module.ALL_ROLES.snowflake_account_role.ROLES["ANALYST"]: Creating...
 module.ALL_ROLES.snowflake_account_role.ROLES["DATA_ENGINEER"]: Creating...
+module.ALL_ROLES.snowflake_account_role.ROLES["DATA_SCIENTIST"]: Creating...
+module.ALL_ROLES.snowflake_account_role.ROLES["MARKETING"]: Creating...
+module.ALL_ROLES.snowflake_account_role.ROLES["SALES"]: Creating...
+module.ALL_WAREHOUSES.snowflake_warehouse.WAREHOUSES["MARKETING_XSMALL_WH"]: Creating...
 ...
-Apply complete! Resources: 25 added, 0 changed, 0 destroyed.
+Apply complete! Resources: X added, 0 changed, 0 destroyed.
 </code></pre>
+<p><strong>Note:</strong> The exact number of resources will vary based on your configuration. The modules create multiple resources including grants.</p>
 <h2 id="step-4-verify-resources"><a class="header" href="#step-4-verify-resources">Step 4: Verify Resources</a></h2>
 <p>After successful application, verify resources in Snowflake:</p>
 <h3 id="using-snowflake-web-ui"><a class="header" href="#using-snowflake-web-ui">Using Snowflake Web UI</a></h3>
 <ol>
 <li>Log into Snowflake</li>
-<li>Navigate to <strong>Admin</strong> → <strong>Users &amp; Roles</strong></li>
-<li>Verify roles and users are created</li>
-<li>Navigate to <strong>Admin</strong> → <strong>Warehouses</strong></li>
-<li>Verify warehouses are created</li>
-<li>Navigate to <strong>Data</strong> → <strong>Databases</strong></li>
-<li>Verify databases, schemas, tables, and views</li>
+<li>Navigate to <strong>Admin</strong> → <strong>Users &amp; Roles</strong>
+<ul>
+<li>Verify roles are created (ANALYST, DATA_ENGINEER, DATA_SCIENTIST, MARKETING, SALES)</li>
+<li>Verify users are created (TEST_USER1, TEST_USER10, TEST_USER11, TEST_USER12, DBT_DEVELOPER)</li>
+</ul>
+</li>
+<li>Navigate to <strong>Admin</strong> → <strong>Warehouses</strong>
+<ul>
+<li>Verify warehouses are created (MARKETING_XSMALL_WH, MARKETING_MEDIUM_WH, SALES_XSMALL_WH, SALES_SMALL_WH)</li>
+</ul>
+</li>
+<li>Navigate to <strong>Data</strong> → <strong>Databases</strong>
+<ul>
+<li>Verify databases are created (ANALYTICS_DB, MARKETING_DB, SALES_DB, TEST_DB, TEST_DB2)</li>
+<li>Expand databases to verify schemas (SALES_SCHEMA, MARKETING_SCHEMA, ADS)</li>
+<li>Expand schemas to verify tables (FACEBOOK_ADS) and views (AGG_FACEBOOK_ADS)</li>
+</ul>
+</li>
 </ol>
 <h3 id="using-terraform-outputs"><a class="header" href="#using-terraform-outputs">Using Terraform Outputs</a></h3>
-<p>View outputs:</p>
+<p>View all outputs:</p>
 <pre><code class="language-bash">terraform output
 </code></pre>
 <p>View specific outputs:</p>
 <pre><code class="language-bash">terraform output ALL_ROLES
 terraform output ALL_USERS
 terraform output ALL_WAREHOUSES
+terraform output ALL_DATABASES
+terraform output ALL_SCHEMAS
+terraform output ALL_TABLES
+terraform output ALL_VIEWS
 </code></pre>
+<p><strong>Note:</strong> <code>ALL_USERS</code> is marked as sensitive, so be careful when viewing it.</p>
 <h2 id="step-5-test-access"><a class="header" href="#step-5-test-access">Step 5: Test Access</a></h2>
 <p>Test that users can access their assigned resources:</p>
 <ol>
@@ -281,9 +302,9 @@ terraform output ALL_WAREHOUSES
 </code></pre>
 <p><strong>Solution:</strong></p>
 <ul>
-<li>Import existing resources: <code>terraform import &lt;resource_type&gt;.&lt;name&gt; &lt;snowflake_identifier&gt;</code></li>
+<li>Import existing resources into modules: <code>terraform import module.ALL_DATABASES.snowflake_database.DATABASES["DB_NAME"] "DB_NAME"</code></li>
 <li>Or remove existing resources from Snowflake manually</li>
-<li>Or modify resource names in configuration</li>
+<li>Or modify resource names in module configuration</li>
 </ul>
 <h3 id="issue-dependency-errors"><a class="header" href="#issue-dependency-errors">Issue: Dependency Errors</a></h3>
 <p><strong>Error:</strong></p>

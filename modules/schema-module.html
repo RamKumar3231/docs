@@ -379,7 +379,8 @@ schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
   }
 }
 </code></pre>
-<h3 id="secure-schema-with-managed-access"><a class="header" href="#secure-schema-with-managed-access">Secure Schema with Managed Access</a></h3>
+<h3 id="secure-schema-with-managed-access-actual-example"><a class="header" href="#secure-schema-with-managed-access-actual-example">Secure Schema with Managed Access (Actual Example)</a></h3>
+<p>This matches the actual schemas in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_SCHEMAS" {
   source = "./modules/snowflake/schema"
   
@@ -388,16 +389,42 @@ schema_name = module.ALL_SCHEMAS.SCHEMAS.MY_SCHEMA.name
   }
   
   schema_map = {
-    "SECURE_DATA" = {
-      database_name               = module.ALL_DATABASES.DATABASES.PRODUCTION_DB.name
+    "SALES_SCHEMA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.SALES_DB.name
       with_managed_access         = true
-      is_transient                = false
-      comment                     = "Secure schema with managed access"
-      data_retention_time_in_days = 30
+      is_transient                = true
+      comment                     = "Schema for sales data"
+      data_retention_time_in_days = 1
       role_privileges = [
         {
-          account_role_name = module.ALL_ROLES.ROLES.DATA_ENGINEER.name
-          privileges        = ["USAGE", "CREATE TABLE", "CREATE VIEW"]
+          account_role_name = module.ALL_ROLES.ROLES.SALES.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    },
+    "MARKETING_SCHEMA" = {
+      database_name               = module.ALL_DATABASES.DATABASES.MARKETING_DB.name
+      with_managed_access         = true
+      is_transient                = true
+      comment                     = "Schema for marketing data"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
+        }
+      ]
+    },
+    "ADS" = {
+      database_name               = module.ALL_DATABASES.DATABASES.TEST_DB.name
+      with_managed_access         = true
+      is_transient                = true
+      comment                     = "Schema for ads data"
+      data_retention_time_in_days = 1
+      role_privileges = [
+        {
+          account_role_name = module.ALL_ROLES.ROLES.MARKETING.name
+          privileges        = ["USAGE"]
         }
       ]
     }

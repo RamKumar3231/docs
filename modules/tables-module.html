@@ -423,7 +423,8 @@ table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
   }
 }
 </code></pre>
-<h3 id="table-with-variant-column"><a class="header" href="#table-with-variant-column">Table with Variant Column</a></h3>
+<h3 id="table-with-variant-column-actual-example"><a class="header" href="#table-with-variant-column-actual-example">Table with Variant Column (Actual Example)</a></h3>
+<p>This matches the actual table in <code>main.tf</code>:</p>
 <pre><code class="language-hcl">module "ALL_TABLES" {
   source = "./modules/snowflake/tables"
   
@@ -463,6 +464,7 @@ table_name = module.ALL_TABLES.TABLES.MY_TABLE.name
           privileges        = ["SELECT"]
         }
       ]
+      with_grant_option = false
     }
   }
 }
